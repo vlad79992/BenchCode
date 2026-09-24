@@ -1,0 +1,6 @@
+﻿services:
+  benchcodemainservice:
+    image: benchcodemainservice
+    build:
+      context: .
+      dockerfile: BenchCodeMainService/Dockerfile
