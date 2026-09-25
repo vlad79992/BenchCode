@@ -3,4 +3,6 @@
     image: benchcodemainservice
     build:
       context: .
-      dockerfile: BenchCodeMainService/Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
