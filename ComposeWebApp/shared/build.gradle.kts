@@ -7,20 +7,20 @@ plugins {
 }
 
 kotlin {
-    js {
-        browser()
-        binaries.executable()
-    }
-
+    jvm()
+    
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         binaries.executable()
     }
-
-
+    
+    
     sourceSets {
         commonMain.dependencies {
+            implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.43.0")
+            implementation(libs.syntaxmp)
+
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -33,8 +33,12 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        jsMain.dependencies {
-            implementation(libs.wrappers.browser)
+//        jsMain.dependencies {
+//            implementation(libs.wrappers.browser)
+//        }
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.compose.uiToolingPreview)
         }
     }
 }
