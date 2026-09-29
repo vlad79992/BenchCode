@@ -39,6 +39,9 @@ object CodeTemplates {
 
             if __name__ == "__main__":
                 main()
+        """.trimIndent(),
+        "C#" to """
+            Console.WriteLine("Hello, World!");
         """.trimIndent()
     )
 

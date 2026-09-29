@@ -30,7 +30,6 @@ fun SyntaxExample(
         if (isDarkTheme) SyntaxTheme.DefaultDark else SyntaxTheme.DefaultLight
     }
 
-    // Генерируем подсвеченный текст на основе переданного текста
     val annotatedString = rememberSyntaxAnnotatedString(
         code = value.text,
         languageLabel = currentLanguage,
