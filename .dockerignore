@@ -23,6 +23,8 @@
 **/values.dev.yaml
 **/build/
 **/.gradle/
+**/.konan/
+**/.kotlin/
 **/node_modules/
 **/.idea/
 **/*.user

@@ -34,6 +34,11 @@ RUN --mount=type=cache,target=/root/.gradle \
 # 4. Copy the rest of the source code
 COPY ComposeWebApp/ ./
 
+RUN apt-get update && apt-get install -y dos2unix && \
+    dos2unix ./gradlew && \
+    chmod +x ./gradlew && \
+    rm -rf /var/lib/apt/lists/*
+
 # 5. Build the Wasm production distribution
 RUN --mount=type=cache,target=/root/.gradle \
     --mount=type=cache,target=/root/.konan \
