@@ -1,6 +1,7 @@
 package com.codebench.composewebapp.student
 
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,49 +18,35 @@ import com.gallatinapps.syntaxmp.compose.rememberSyntaxAnnotatedString
 import com.gallatinapps.syntaxmp.tokenizer.SyntaxTokenizer
 
 @Composable
-fun SyntaxExample(modifier: Modifier) {
+fun SyntaxExample(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    currentLanguage: String,
+    isDarkTheme: Boolean,
+    modifier: Modifier = Modifier
+) {
     val engine = remember { SyntaxTokenizer() }
-    val theme = remember { SyntaxTheme.DefaultLight }
-
-    // 1. Храним полное состояние ввода (текст + позиция курсора)
-    var textFieldState by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = """
-                    #include <iostream>
-                    
-                    int main()
-                    {
-                        std::cout << "Hello world!" << std::endl;
-                        return 0;
-                    }
-                """.trimIndent()
-            )
-        )
+    val theme = remember(isDarkTheme) {
+        if (isDarkTheme) SyntaxTheme.DefaultDark else SyntaxTheme.DefaultLight
     }
 
-    // 2. Генерируем подсвеченный текст на основе текущего текста в стейте
     val annotatedString = rememberSyntaxAnnotatedString(
-        code = textFieldState.text,
-        languageLabel = "cpp",
+        code = value.text,
+        languageLabel = currentLanguage,
         engine = engine,
         theme = theme
     )
 
-    // 3. Собираем финальное значение для текстового поля:
-    // Берем актуальный курсор/выделение из стейта, но подставляем подсвеченный текст
-    val finalTextFieldValue = textFieldState.copy(annotatedString = annotatedString)
+    val finalTextFieldValue = value.copy(annotatedString = annotatedString)
 
     BasicTextField(
         value = finalTextFieldValue,
-        onValueChange = { newValue ->
-            // 4. Просто сохраняем новое состояние, которое ввел пользователь
-            textFieldState = newValue
-        },
+        onValueChange = onValueChange,
         textStyle = TextStyle(
             fontFamily = FontFamily.Monospace,
             fontSize = 14.sp,
-            lineHeight = 20.sp
+            lineHeight = 20.sp,
+            color = MaterialTheme.colorScheme.onSurface
         ),
         modifier = modifier
     )
