@@ -1,9 +1,13 @@
 package com.codebench.composewebapp
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,6 +18,9 @@ import com.codebench.composewebapp.student.MainScreen
 fun App(
     onNavHostReady: suspend (NavController) -> Unit = {}
 ) {
+    val systemTheme = isSystemInDarkTheme()
+    var isDarkTheme by remember { mutableStateOf(systemTheme) }
+    //AppTheme(darkTheme = isDarkTheme) {
     MaterialTheme {
         val navController = rememberNavController()
         NavHost(navController = navController, startDestination = RoleSelection) {

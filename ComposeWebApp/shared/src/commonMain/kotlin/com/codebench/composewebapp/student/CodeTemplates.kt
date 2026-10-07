@@ -1,4 +1,4 @@
-package com.codebench.composewebapp
+package com.codebench.composewebapp.student
 
 object CodeTemplates {
     private val templates = mapOf(

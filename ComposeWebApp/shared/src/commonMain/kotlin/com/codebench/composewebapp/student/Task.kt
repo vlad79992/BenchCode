@@ -69,7 +69,7 @@ fun Task() {
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                SyntaxExample(Modifier.fillMaxWidth())
+                //SyntaxExample(Modifier.fillMaxWidth())
             }
         }
 
