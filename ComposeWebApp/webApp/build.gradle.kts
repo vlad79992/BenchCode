@@ -7,11 +7,6 @@ plugins {
 }
 
 kotlin {
-//    js {
-//        browser()
-//        binaries.executable()
-//    }
-
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
@@ -23,6 +18,7 @@ kotlin {
             implementation(project(":shared"))
 
             implementation(libs.compose.ui)
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.10.0-beta01")
         }
     }
 }
