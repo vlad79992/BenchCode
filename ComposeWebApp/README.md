@@ -1,30 +1,24 @@
-This is a Kotlin Multiplatform project targeting Web, Desktop (JVM).
+This is a Kotlin Multiplatform project targeting Android, Desktop (JVM), Web, built with the [Kotlin Toolchain](https://kotlin-toolchain.org/dev/).
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+- [/androidApp](./androidApp) contains the Android application.
+- [/desktopApp](./desktopApp) contains the desktop (JVM) application.
+- [/shared](./shared) holds the code shared across your applications — Compose UI, business logic, and platform-specific implementations. [src](./shared/src) is for common code; the sibling `src@<platform>` folders (for example `src@android`) hold code compiled only for the platform named in the folder.
+- [/webApp](./webApp) contains the web application, compiled to WebAssembly with Kotlin/Wasm.
 
-### Running the apps
+The `kotlin` (macOS/Linux) and `kotlin.bat` (Windows) scripts in the project root are self-bootstrapping wrappers for the Kotlin Toolchain: they download the pinned toolchain version on first use, so no separate installation is required. Build the whole project with `./kotlin build`.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+### Running
 
-- Desktop app:
-  - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-  - Standard run: `./gradlew :desktopApp:run`
-- Web app:
-  - Wasm target (faster, modern browsers): `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
-  - JS target (slower, supports older browsers): `./gradlew :webApp:jsBrowserDevelopmentRun`
+Use the run configurations provided by the run widget in your IDE's toolbar. You can also run each module from the command line:
+
+- Android app: `./kotlin run -m androidApp`
+- Desktop app: `./kotlin run -m desktopApp`
+- Web app: `./kotlin run -m webApp`
+
+### Testing
+
+Run the project's tests with `./kotlin test`, or `./kotlin test -m <module>` for a single module.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://kotlinlang.org/compose-multiplatform/),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html), [Kotlin Toolchain](https://kotlin-toolchain.org/dev/), [Compose Multiplatform](https://kotlinlang.org/compose-multiplatform/), [Kotlin/Wasm](https://kotl.in/wasm/).

@@ -1,50 +1,49 @@
 ﻿# ==========================================
 # Stage 1: Build Kotlin Compose Wasm App
 # ==========================================
-FROM eclipse-temurin:21-jdk AS kotlin-build
+FROM mcr.microsoft.com/openjdk/jdk:25-ubuntu AS kotlin-build
 WORKDIR /app
 
-# Install system dependencies often required by Kotlin tooling/Skiko
+# Устанавливаем системные зависимости
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libatomic1 && \
+    apt-get install -y --no-install-recommends libatomic1 wget ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy Gradle wrapper
-COPY ComposeWebApp/gradlew ./
-COPY ComposeWebApp/gradle/ ./gradle/
-RUN chmod +x ./gradlew
+# 1. Копируем исполняемые скрипты Kotlin toolchain из папки ComposeWebApp
+COPY ComposeWebApp/kotlin ./
+COPY ComposeWebApp/kotlin.bat ./
+RUN chmod +x ./kotlin
 
-# --- DEPENDENCY CACHING STRATEGY ---
-# 1. Copy root and subproject build files FIRST
-COPY ComposeWebApp/settings.gradle.kts ComposeWebApp/build.gradle.kts ComposeWebApp/gradle.properties ./
-# If you use a version catalog (libs.versions.toml), copy it here too:
-COPY ComposeWebApp/gradle/libs.versions.toml ./gradle/
+# 2. Копируем конфигурационные файлы Amper
+COPY ComposeWebApp/project.yaml ./
+COPY ComposeWebApp/libs.versions.toml ./
 
-# 2. Copy the build files of your subprojects so Gradle can resolve their dependencies
-COPY ComposeWebApp/webApp/build.gradle.kts ./webApp/
-COPY ComposeWebApp/shared/build.gradle.kts ./shared/
+# 3. Копируем исходный код модулей приложения
+COPY ComposeWebApp/shared/ ./shared/
+COPY ComposeWebApp/webApp/ ./webApp/
 
-# 3. Download all dependencies (this layer is now cached unless build files change!)
-RUN --mount=type=cache,target=/root/.gradle \
-    --mount=type=cache,target=/root/.konan \
-    --mount=type=cache,target=/root/.cache \
+RUN sed -i 's/- androidApp/# - androidApp/g' project.yaml && \
+    sed -i 's/- desktopApp/# - desktopApp/g' project.yaml
+
+# 4. Собираем Wasm production дистрибутив
+# Временно замените финальную команду сборщика на эту, чтобы увидеть дерево папок в логах:
+
+# RUN --mount=type=cache,target=/root/.cache \
+#    --mount=type=cache,target=/root/.kotlin \
+#     ./kotlin build -m webApp --variant release && \
+#     echo "--- НАЧАЛО ПОЛНОГО СПИСКА ФАЙЛОВ ---" && \
+#     find build/artifacts -type f && \
+#     echo "--- КОНЕЦ ПОИСКА ФАЙЛОВ ---" && \
+#     exit 1
+
+RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/root/.kotlin \
-    ./gradlew :webApp:dependencies :shared:dependencies --no-daemon || true
-
-# 4. Copy the rest of the source code
-COPY ComposeWebApp/ ./
-
-RUN apt-get update && apt-get install -y dos2unix && \
-    dos2unix ./gradlew && \
-    chmod +x ./gradlew && \
-    rm -rf /var/lib/apt/lists/*
-
-# 5. Build the Wasm production distribution
-RUN --mount=type=cache,target=/root/.gradle \
-    --mount=type=cache,target=/root/.konan \
-    --mount=type=cache,target=/root/.cache \
-    --mount=type=cache,target=/root/.kotlin \
-    ./gradlew :webApp:wasmJsBrowserDistribution --no-daemon --build-cache
+    ./kotlin build -m webApp --variant release && \
+    mkdir -p /app/ready_static && \
+    # Копируем готовый дистрибутив webApp (index.html, *.mjs, *.wasm, vendors/, composeResources/),
+    # сгенерированный Amper в build/tasks/_webApp_buildWasmJsAppWasmJsRelease
+    TASK_DIR=$(find build/tasks -type d -name "_webApp_buildWasmJsAppWasmJsRelease" -o -name "_webApp_buildWasmJsAppWasmJs*" | head -n 1) && \
+    cp -r "$TASK_DIR"/. /app/ready_static/
 
 # ==========================================
 # Stage 2: Build ASP.NET Core App
@@ -75,5 +74,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 # Copy the compiled Wasm web app into the ASP.NET Core wwwroot folder
-COPY --from=kotlin-build /app/webApp/build/dist/wasmJs/productionExecutable ./wwwroot/
+COPY --from=kotlin-build /app/ready_static ./wwwroot
+
 ENTRYPOINT ["dotnet", "BenchCodeMainService.dll"]

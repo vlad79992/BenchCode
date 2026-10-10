@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.StaticFiles;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,16 +22,24 @@ app.Use(async (context, next) =>
     await next();
 });
 
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".mjs"] = "application/javascript";
+provider.Mappings[".wasm"] = "application/wasm";
+provider.Mappings[".js"] = "application/javascript";
+
 app.UseDefaultFiles();
 
 app.UseStaticFiles(new StaticFileOptions
 {
+    ContentTypeProvider = provider,
     OnPrepareResponse = ctx =>
     {
         if (ctx.File.Name.EndsWith(".wasm"))
             ctx.Context.Response.Headers.ContentType = "application/wasm";
-        if (ctx.File.Name.EndsWith(".mjs"))
+        else if (ctx.File.Name.EndsWith(".mjs") || ctx.File.Name.EndsWith(".js"))
+        {
             ctx.Context.Response.Headers.ContentType = "application/javascript";
+        }
     }
 });
 
