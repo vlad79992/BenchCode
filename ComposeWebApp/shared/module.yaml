@@ -12,9 +12,21 @@ dependencies:
   - $compose.hotReload.runtimeApi
   - $libs.androidx.lifecycle.viewmodel.compose
   - $libs.androidx.lifecycle.runtime.compose
+  - $libs.jetbrains.navigation3.ui
+  - $libs.jetbrains.lifecycle.viewmodelNavigation3
+  - $libs.jetbrains.material3.adaptiveNavigation3
+  - $libs.koin.core
+  - $libs.koin.compose
+  - $libs.koin.compose.viewmodel
+  - $libs.koin.compose.navigation3
+  - $libs.datastore.core
+  - $libs.datastore.preferences.core
 
 dependencies@android:
   - $compose.uiTooling
+
+dependencies@web:
+  - $libs.navigation3.browser
 
 settings:
   compose:
@@ -23,3 +35,5 @@ settings:
       packageName: org.codebench.composewebapp.resources
       # Generate public accessors so other modules (and previews) can use Res.*
       exposedAccessors: true
+  kotlin:
+    serialization: enabled

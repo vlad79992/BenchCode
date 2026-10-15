@@ -1,7 +1,11 @@
 Это репозиторий проекта CodeBench, реализуемого в рамках предмета "Технологии разработки ПО"
 
+[README.md фронтенда](./ComposeWebApp/README.md)
+
+[README.md бекенда](./BenchCodeMainService/README.md)
+
 # Запуск
-Для сборки _всего_ проекта использовать команду (очень долго из-за градла)
+Для сборки _всего_ проекта использовать команду (долго из-за оптимизации размера)
 ```
 docker compose up --build
 ```
@@ -11,13 +15,15 @@ docker compose up --build
 ### JVM 
 Самый быстрый вариант
 ```
-./gradlew :desktopApp:run
+kotlin run --module desktopApp
 ```
 ### WASM
 Медленнее, но запускается в браузере
 ```
-./gradlew :webApp:wasmJsBrowserDevelopmentRun
+kotlin run --module webApp
 ```
+### Android
+Нужен для предпросмотра в Android studio, нативного релиза в планах нет
 
 # Важные ресурсы:
 

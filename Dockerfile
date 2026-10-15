@@ -6,7 +6,13 @@ WORKDIR /app
 
 # Устанавливаем системные зависимости
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libatomic1 wget ca-certificates && \
+    apt-get install -y --no-install-recommends \
+    libatomic1 \
+    wget \
+    ca-certificates \
+    unzip \
+    libstdc++6 \
+    build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 # 1. Копируем исполняемые скрипты Kotlin toolchain из папки ComposeWebApp
