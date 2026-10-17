@@ -21,12 +21,12 @@ fun NavigationRoot() {
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                    subclassesOfSealed<SelectionRoute>()
+                    subclassesOfSealed<SharedRoute>()
                     subclassesOfSealed<StudentRoute>()
                 }
             }
         },
-        SelectionRoute.RoleSelection
+        SharedRoute.RoleSelection
     )
 
     CompositionLocalProvider(LocalNavBackStack provides backstack) {
