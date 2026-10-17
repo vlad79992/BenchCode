@@ -2,9 +2,9 @@ namespace BenchCodeMainService.Entities;
 
 public class Task
 {
-    public int Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public List<Languages> Languages { get; init; } = [];
-    public List<Submit> Submits { get; init; } = [];
+    public required Guid Id { get; init; }
+    public required string Name { get; init; }
+    public required string Description { get; init; }
+    public required List<Language> Languages { get; init; }
+    public List<Submission> Submissions { get; init; } = [];
 }

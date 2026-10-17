@@ -1,169 +1,104 @@
 using BenchCodeMainService.Entities;
-using BenchCodeMainService.Entities.Dtos;
 using Task = BenchCodeMainService.Entities.Task;
 
 namespace BenchCodeMainService.Services;
 
 public class CompetitionService
 {
-    private readonly List<Group> _groups =
-    [
-        new Group { Id = 1, Name = "ИВТ-01", StudentIds = [1, 2] },
-        new Group { Id = 2, Name = "ИВТ-02", StudentIds = [3, 4] }
-    ];
-
-    private readonly List<User> _users =
-    [
-        new User { Id = 1, Name = "Студент 1", GroupId = 1 },
-        new User { Id = 2, Name = "Студент 2", GroupId = 1 },
-        new User { Id = 3, Name = "Студент 3", GroupId = 2 },
-        new User { Id = 4, Name = "Студент 4", GroupId = 2 }
-    ];
-
-    private readonly List<Competition> _competitions;
-    private readonly List<Submit> _submissions = [];
-    private int _nextSubmissionId = 1;
-    private readonly object _submissionLock = new();
+    public List<Competition> Competitions { get; init; }
+    public List<Submission> Submissions { get; init; } = [];
+    private readonly object submissionLock = new();
 
     public CompetitionService()
     {
         var now = DateTimeOffset.UtcNow;
-        _competitions =
+        Competitions =
         [
             new Competition
             {
-                Id = 1,
+                Id = Guid.NewGuid(),
                 Name = "СиАКОД",
                 Description = "Первый семестр",
                 StartDate = now.AddDays(-1),
                 EndDate = now.AddYears(1),
-                GroupIds = [1],
                 Tasks =
                 [
                     new Task
                     {
-                        Id = 101,
+                        Id = Guid.NewGuid(),
                         Name = "Бинарный поиск",
                         Description = "Реализуйте бинарный поиск.",
-                        Languages = [Languages.Cpp, Languages.CSharp, Languages.Java, Languages.Python]
+                        Languages = [Language.Cpp, Language.CSharp, Language.Java, Language.Python]
                     },
                     new Task
                     {
-                        Id = 102,
+                        Id = Guid.NewGuid(),
                         Name = "Сортировка пузырьком",
                         Description = "Реализуйте сортировку пузырьком.",
-                        Languages = [Languages.CSharp, Languages.Java]
+                        Languages = [Language.CSharp, Language.Java]
                     }
-                ]
+                ],
+                Password = "password"
             },
             new Competition
             {
-                Id = 2,
+                Id = Guid.NewGuid(),
                 Name = "Оптимизация",
                 Description = "Второй семестр",
                 StartDate = now.AddDays(-1),
                 EndDate = now.AddYears(1),
-                GroupIds = [2],
                 Tasks =
                 [
                     new Task
                     {
-                        Id = 201,
+                        Id = Guid.NewGuid(),
                         Name = "Два числа",
                         Description = "Найдите два числа с заданной суммой.",
-                        Languages = [Languages.Cpp, Languages.CSharp, Languages.Java, Languages.Python]
+                        Languages = [Language.Cpp, Language.CSharp, Language.Java, Language.Python]
                     },
                     new Task
                     {
-                        Id = 202,
+                        Id = Guid.NewGuid(),
                         Name = "Ханойская башня",
                         Description = "Реализуйте решение задачи о Ханойской башне.",
-                        Languages = [Languages.CSharp, Languages.Java]
+                        Languages = [Language.CSharp, Language.Java]
                     }
-                ]
+                ],
+                Password = "password"
             }
         ];
     }
 
-    public IReadOnlyList<Competition> GetCompetitions(int? userId = null)
-    {
-        if (userId is null)
-            return _competitions;
+    public Competition? GetCompetition(Guid id) =>
+        Competitions.FirstOrDefault(competition => competition.Id == id);
 
-        var user = GetUser(userId.Value);
-        return user is null
-            ? []
-            : _competitions.Where(competition => competition.GroupIds.Contains(user.GroupId)).ToList();
+    public IReadOnlyList<Submission> GetSubmissions(Guid taskId)
+    {
+        lock (submissionLock)
+        {
+            return Submissions.Where(submission => submission.TaskId == taskId).ToList();
+        }
     }
 
-    public Competition? GetCompetition(int id) =>
-        _competitions.FirstOrDefault(competition => competition.Id == id);
-
-    public IReadOnlyList<Group> GetGroups() => _groups;
-
-    public IReadOnlyList<User> GetUsers() => _users;
-
-    public User? GetUser(int id) => _users.FirstOrDefault(user => user.Id == id);
-
-    public IReadOnlyList<Submit> GetSubmissions(int userId)
+    public IResult Submit(Guid taskId, Submission submission)
     {
-        lock (_submissionLock)
-            return _submissions.Where(submission => submission.UserId == userId).ToList();
-    }
-
-    public SubmissionResult Submit(int taskId, SubmitDto request)
-    {
-        var user = GetUser(request.UserId);
-        if (user is null)
-            return SubmissionResult.Failure(StatusCodes.Status404NotFound, "Студент не найден.");
-
-        var competition = _competitions.FirstOrDefault(item => item.Tasks.Any(task => task.Id == taskId));
-        if (competition is null)
-            return SubmissionResult.Failure(StatusCodes.Status404NotFound, "Задача не найдена.");
-
-        if (!competition.GroupIds.Contains(user.GroupId))
-            return SubmissionResult.Failure(StatusCodes.Status403Forbidden, "Задача недоступна вашей группе.");
+        if (Competitions.FirstOrDefault(item => item.Tasks.Any(task => task.Id == taskId)) is not Competition competition)
+            return Results.NotFound("Задача не найдена.");
 
         var now = DateTimeOffset.UtcNow;
         if (now < competition.StartDate || now > competition.EndDate)
-            return SubmissionResult.Failure(StatusCodes.Status409Conflict, "Соревнование сейчас не проводится.");
+            return Results.Conflict("Соревнование сейчас не проводится.");
 
         var task = competition.Tasks.First(item => item.Id == taskId);
-        if (!Enum.IsDefined(request.Language) || !task.Languages.Contains(request.Language))
-            return SubmissionResult.Failure(StatusCodes.Status400BadRequest, "Язык не поддерживается этой задачей.");
+        if (!Enum.IsDefined(submission.Language) || !task.Languages.Contains(submission.Language))
+            return Results.BadRequest("Язык не поддерживается этой задачей.");
 
-        if (string.IsNullOrWhiteSpace(request.Code))
-            return SubmissionResult.Failure(StatusCodes.Status400BadRequest, "Отправьте непустой код.");
-
-        var accepted = request.Code.Contains("// MOCK_ACCEPTED", StringComparison.Ordinal);
-        lock (_submissionLock)
+        var accepted = submission.Code.Contains("// MOCK_ACCEPTED", StringComparison.Ordinal);
+        lock (submissionLock)
         {
-            var submission = new Submit
-            {
-                Id = _nextSubmissionId++,
-                TaskId = taskId,
-                UserId = user.Id,
-                Code = request.Code,
-                Language = request.Language,
-                Status = accepted ? SubmitStatus.Accepted : SubmitStatus.Error,
-                Message = accepted
-                    ? "Заглушка проверки: решение принято."
-                    : "Заглушка проверки: для имитации принятого решения добавьте в код комментарий // MOCK_ACCEPTED.",
-                SubmittedAt = now
-            };
-
-            _submissions.Add(submission);
-            task.Submits.Add(submission);
-            return SubmissionResult.Success(submission);
+            Submissions.Add(submission);
+            task.Submissions.Add(submission);
+            return Results.Ok(submission);
         }
     }
-}
-
-public sealed record SubmissionResult(int StatusCode, string? Error, Submit? Submission)
-{
-    public static SubmissionResult Failure(int statusCode, string error) =>
-        new(statusCode, error, null);
-
-    public static SubmissionResult Success(Submit submission) =>
-        new(StatusCodes.Status201Created, null, submission);
 }
