@@ -4,4 +4,6 @@ import androidx.lifecycle.ViewModel
 
 class CompetitionMainScreenViewModel(
     val competitionId: String
-) : ViewModel()
+) : ViewModel() {
+
+}

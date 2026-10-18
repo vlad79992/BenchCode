@@ -64,13 +64,16 @@ app.MapGet("/competitions/{id:guid}/tasks", (Guid id, CompetitionService service
     service.GetCompetition(id) switch
     {
         null => Results.NotFound(new { message = "Соревнование не найдено." }),
-        var competition => Results.Ok(competition.Tasks)
+        var competition => Results.Ok(competition.TasksIds.Join(service.Tasks,
+                                                                competitionTaskId => competitionTaskId,
+                                                                task => task.Id,
+                                                                (_, task) => task))
     });
 app.MapGet("/competitions/{id:guid}/tasks/{taskId:guid}", (Guid id, Guid taskId, CompetitionService service) =>
     service.GetCompetition(id) switch
     {
         null => Results.NotFound(new { message = "Соревнование не найдено." }),
-        var competition => competition.Tasks.FirstOrDefault(task => task.Id == taskId) switch
+        var competition => service.Tasks.FirstOrDefault(task => task.Id == taskId) switch
         {
             null => Results.NotFound(new { message = "Задача не найдена." }),
             var task => Results.Ok(task)
