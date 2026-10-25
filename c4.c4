@@ -1,0 +1,291 @@
+specification {
+  element actor {
+    style {
+      shape person
+      color secondary
+    }
+  }
+  element system
+  element container {
+    style {
+      shape rectangle
+    }
+  }
+  element component {
+    style {
+      shape component
+    }
+  }
+}
+
+model {
+  student = actor 'Студент' {
+    description 'Пользователь, который принимает участие в соревнованиях, отправляет свой код'
+  }
+  teacher = actor 'Преподаватель' {
+    description 'Пользователь, создает соревнования'
+  }
+
+  codeBench = system 'CodeBench' {
+    description 'Система для автоматической проверки выполнения заданий'
+    
+    staticContent = component 'Статичные файлы' {
+      style {
+        icon tech:webassembly
+        shape storage
+      }
+    }
+
+    ui = container 'Фронтенд (Web-приложение)' {
+      style {
+        icon tech:kotlin
+        shape browser
+      }
+    }
+    
+    backend = container 'Бэкенд' {
+      style {
+        icon tech:csharp
+      }
+      
+      apiController = container 'API Controller' {
+        style {
+          icon tech:csharp
+        }
+
+        apiControllerGetCompetitions = component 'GET competitions' 'Получение всех соревнований' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerGetCompetitionById = component 'GET competitions/{id}' 'Получение соревнования по id' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerGetTasks = component 'GET competitions/{id}/tasks' 'Получение всех задач в соревновании' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerGetTaskById = component 'GET competitions/{id}/tasks/{taskId}' 'Получение всех задачи в соревновании по id' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerSubmitTaskById = component 'POST competitions/{id}/tasks/{taskId}/submit' 'Отправление посылки' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerTestTaskById = component 'POST competitions/{id}/tasks/{taskId}/test' 'Проверка на публичных тестах' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerGetSubmissions = component 'GET competitions/{id}/tasks/{taskId}/submissions' 'Получение всех посылок для задачи' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerGetSubmissionById = component 'GET competitions/{id}/tasks/{taskId}/submissions/{submissionId}' 'Получение посылки для задачи по id' {
+          style {
+            shape rectangle
+            size xlarge
+          }
+        }
+        apiControllerCheckPassword = component 'GET competitions/{id}/check-password' 'Проверка корректности пароля' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+
+        codeBench.ui -> codeBench.apiControllerGetCompetitions
+        codeBench.ui -> codeBench.apiControllerGetCompetitionById
+        codeBench.ui -> codeBench.apiControllerGetTasks
+        codeBench.ui -> codeBench.apiControllerGetTaskById
+        codeBench.ui -> codeBench.apiControllerGetSubmissions
+        codeBench.ui -> codeBench.apiControllerGetSubmissionById
+        codeBench.ui -> codeBench.apiControllerSubmitTaskById
+        codeBench.ui -> codeBench.apiControllerTestTaskById
+        codeBench.ui -> codeBench.apiControllerCheckPassword
+
+        codeBench.apiControllerGetCompetitions -> codeBench.competitionController.competitionControllerGetCompetitions
+        codeBench.apiControllerGetCompetitionById -> codeBench.competitionController.competitionControllerGetCompetitionById
+        codeBench.apiControllerGetTasks -> codeBench.competitionController.competitionControllerGetTasks
+        codeBench.apiControllerGetTaskById -> codeBench.competitionController.competitionControllerGetTaskById
+        codeBench.apiControllerGetSubmissions -> codeBench.competitionController.competitionControllerGetSubmissions
+        codeBench.apiControllerGetSubmissionById -> codeBench.competitionController.competitionControllerGetSubmissionById
+        codeBench.apiControllerSubmitTaskById -> codeBench.messageBroker
+        codeBench.apiControllerTestTaskById -> codeBench.messageBroker
+        codeBench.apiControllerCheckPassword -> codeBench.competitionController.competitionControllerCheckPassword
+      }
+
+      testingController = container 'Модуль для тестирования' {
+        description 'Настраивает контейнер, добавляет в него нужные файлы, получает результаты запуска'
+        
+        testingControllerSubmitTaskById = component 'Проверка посылки' 'Создание контейнера с нужными фалйлами и запуск всех тестов' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        testingControllerTestTaskById = component 'Тестирование посылки' 'Создание контейнера с нужными фалйлами и запуск публичных тестов' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        codeBench.messageBroker -> testingControllerSubmitTaskById
+        testingControllerSubmitTaskById -> codeBench.competitionsDatabase 'получение тестов'
+        testingControllerSubmitTaskById -> codeBench.testingContainer
+        codeBench.messageBroker -> testingControllerTestTaskById
+        testingControllerTestTaskById -> codeBench.competitionsDatabase 'получение публичных тестов'
+        testingControllerTestTaskById -> codeBench.testingContainer
+      }
+
+      competitionController = container 'Модуль соревнований' {
+        description 'Отвечает за создание и получение соревнований и задач'
+        competitionControllerGetCompetitions = component 'GET competitions' 'Получение всех соревнований' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        competitionControllerGetCompetitionById = component 'GET competitions/{id}' 'Получение соревнования по id' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        competitionControllerGetTasks = component 'GET competitions/{id}/tasks' 'Получение всех задач в соревновании' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        competitionControllerGetTaskById = component 'GET competitions/{id}/tasks/{taskId}' 'Получение всех задачи в соревновании по id' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        competitionControllerGetSubmissions = component 'GET competitions/{id}/tasks/{taskId}/submissions' 'Получение всех посылок для задачи' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        competitionControllerGetSubmissionById = component 'GET competitions/{id}/tasks/{taskId}/submissions/{submissionId}' 'Получение посылки для задачи по id' {
+          style {
+            shape rectangle
+            size xlarge
+          }
+        }
+        competitionControllerCheckPassword = component 'GET competitions/{id}/check-password' 'Проверка пароля для задачи' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+
+        competitionControllerGetCompetitions -> codeBench.competitionsDatabase
+        competitionControllerGetCompetitionById -> codeBench.competitionsDatabase
+        competitionControllerGetTasks -> codeBench.competitionsDatabase
+        competitionControllerGetTaskById -> codeBench.competitionsDatabase
+        competitionControllerGetSubmissions -> codeBench.solutionsDatabase
+        competitionControllerGetSubmissionById -> codeBench.solutionsDatabase
+        competitionControllerCheckPassword -> codeBench.competitionsDatabase
+
+      }
+      
+      testingContainer = component 'Контейнер для тестирования' {
+        description 'Используется для изолированного запуска программ'
+        style {
+          icon tech:docker
+        }
+      }
+
+      apiController -> messageBroker 'Добавляет решение в очередь'
+      messageBroker -> testingController
+      apiController -> competitionController
+    }
+
+    messageBroker = component 'Брокер сообщений' {
+      description 'Используется для сглаживания нагрузки при получении большого числа запросов'
+      style {
+        icon tech:rabbitmq
+        shape queue
+      }
+    }
+
+    solutionsDatabase = container 'БД решений' {
+      style {
+        icon tech:postgresql
+        shape storage
+      }
+    }
+    
+    competitionsDatabase = container 'БД соревнований' {
+      style {
+        icon tech:postgresql
+        shape storage
+      }
+    }
+  }
+
+  student -> codeBench 'использует'
+  teacher -> codeBench 'использует'
+  
+  student -> codeBench.ui 'Открывает в браузере'
+  teacher -> codeBench.ui 'Открывает в браузере'
+  student -> codeBench.staticContent 'Получает интерфейс'
+  teacher -> codeBench.staticContent 'Получает интерфейс'
+  codeBench.staticContent -> codeBench.ui 'Отправляет'
+  codeBench.ui -> codeBench.backend 'Вызывает REST API'
+
+  codeBench.backend.testingController -> codeBench.testingContainer
+  codeBench.backend.testingController -> codeBench.solutionsDatabase 'Получение и запись данных о решениях\nSQL'
+  codeBench.backend.competitionController -> codeBench.competitionsDatabase 'Получение и запись данных о соревнованиях и задачах\nSQL'
+}
+
+views {
+  view contextView {
+    title 'Context'
+    include student, teacher, codeBench
+  }
+  
+  view containerView of codeBench {
+    title 'Containers'
+    include *
+  }
+  
+  view componentView of codeBench.backend {
+    title 'Backend'
+    include *
+  }
+
+  view apiControllerView of codeBench.backend.apiController {
+    title 'ApiController'
+    include *
+  }
+
+  view testingControllerView of codeBench.backend.testingController {
+    title 'TestingController'
+    include *
+  }
+
+  view competitionControllerView of codeBench.backend.competitionController {
+    title 'CompetitionController'
+    
+    include *
+  }
+}
