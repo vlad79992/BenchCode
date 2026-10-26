@@ -152,9 +152,11 @@ fun TaskScreen(taskId: String) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val successText by remember { mutableStateOf("") }
+                var successText by remember { mutableStateOf("") }
                 Button(
-                    onClick = {},
+                    onClick = {
+                        successText = "Решение успешно отправлено"
+                    },
                     modifier = Modifier.width(200.dp).padding(top = 8.dp),
                     enabled = name.isNotEmpty()
                 ) {
@@ -162,7 +164,8 @@ fun TaskScreen(taskId: String) {
                 }
                 Text(
                     text = successText,
-                    color = Color.Green
+                    color = Color.Green,
+                    modifier = Modifier.padding(16.dp)
                 )
             }
         } else {
