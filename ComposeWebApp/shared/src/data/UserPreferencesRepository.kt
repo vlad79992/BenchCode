@@ -2,6 +2,7 @@ package org.codebench.composewebapp.data
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -14,6 +15,7 @@ class UserPreferencesRepository(
     private object PreferencesKeys {
         val COUNTER = intPreferencesKey("counter")
         val USER_NAME = stringPreferencesKey("user_name")
+        val AUTHENTIFICATION = booleanPreferencesKey("authentification")
     }
 
     val counterFlow: Flow<Int> = dataStore.data.map { preferences ->
@@ -22,6 +24,10 @@ class UserPreferencesRepository(
 
     val userNameFlow: Flow<String> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.USER_NAME] ?: ""
+    }
+
+    val authentificationFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.AUTHENTIFICATION] ?: false
     }
 
     suspend fun incrementCounter() {
@@ -34,6 +40,12 @@ class UserPreferencesRepository(
     suspend fun saveUserName(name: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_NAME] = name
+        }
+    }
+
+    suspend fun setAuthentification(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUTHENTIFICATION] = value
         }
     }
 }

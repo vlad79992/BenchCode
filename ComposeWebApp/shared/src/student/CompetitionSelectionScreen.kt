@@ -3,8 +3,10 @@ package org.codebench.composewebapp.student
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,14 +32,25 @@ fun CompetitionSelection() {
     ) {
         OutlinedTextField(
             state = viewModel.competitionId,
-            label = { Text("Код соревнования") }
+            label = { Text("Код соревнования") },
+            isError = viewModel.isError,
+            supportingText = {
+                if (viewModel.isError) {
+                    Text(
+                        text = "Неверный код соревнования",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
         Button(
             onClick = {
-                val id = viewModel.competitionId.text.toString()
-                backstack.add(StudentRoute.CompetitionMainScreen(id))
+                val validId = viewModel.validateAndGetId()
+                if (validId != null) {
+                    backstack.add(StudentRoute.CompetitionMainScreen(validId))
+                }
             },
-            modifier = Modifier.width(200.dp)
+            modifier = Modifier.width(200.dp).padding(top = 8.dp)
         ) {
             Text("Перейти")
         }
