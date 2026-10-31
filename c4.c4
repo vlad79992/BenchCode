@@ -28,7 +28,7 @@ model {
 
   codeBench = system 'CodeBench' {
     description 'Система для автоматической проверки выполнения заданий'
-    
+
     staticContent = component 'Статичные файлы' {
       style {
         icon tech:webassembly
@@ -42,18 +42,24 @@ model {
         shape browser
       }
     }
-    
+
     backend = container 'Бэкенд' {
       style {
         icon tech:csharp
       }
-      
+
       apiController = container 'API Controller' {
         style {
           icon tech:csharp
         }
 
-        apiControllerGetCompetitions = component 'GET competitions' 'Получение всех соревнований' {
+        apiControllerGetUserParticipationCompetitions = component 'GET user-participation-competitions/{userId}' 'Получение всех соревнований, в которых участвует пользователь' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerGetUserCreatedCompetitions = component 'GET user-created-competitions/{userId}' 'Получение всех соревнований, созданных пользователем' {
           style {
             shape rectangle
             size large
@@ -101,14 +107,22 @@ model {
             size xlarge
           }
         }
-        apiControllerCheckPassword = component 'GET competitions/{id}/check-password' 'Проверка корректности пароля' {
+
+        apiControllerAuthentificationLogin = component 'POST auth/login' 'Вход' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        apiControllerAuthentificationRegister = component 'POST auth/register' 'Регистрация нового пользователя' {
           style {
             shape rectangle
             size large
           }
         }
 
-        codeBench.ui -> codeBench.apiControllerGetCompetitions
+        codeBench.ui -> codeBench.apiControllerGetUserParticipationCompetitions
+        codeBench.ui -> codeBench.apiControllerGetUserCreatedCompetitions
         codeBench.ui -> codeBench.apiControllerGetCompetitionById
         codeBench.ui -> codeBench.apiControllerGetTasks
         codeBench.ui -> codeBench.apiControllerGetTaskById
@@ -116,9 +130,11 @@ model {
         codeBench.ui -> codeBench.apiControllerGetSubmissionById
         codeBench.ui -> codeBench.apiControllerSubmitTaskById
         codeBench.ui -> codeBench.apiControllerTestTaskById
-        codeBench.ui -> codeBench.apiControllerCheckPassword
+        codeBench.ui -> codeBench.apiControllerAuthentificationLogin
+        codeBench.ui -> codeBench.apiControllerAuthentificationRegister
 
-        codeBench.apiControllerGetCompetitions -> codeBench.competitionController.competitionControllerGetCompetitions
+        codeBench.apiControllerGetUserParticipationCompetitions -> codeBench.competitionController.competitionControllerGetUserParticipationCompetitions
+        codeBench.apiControllerGetUserCreatedCompetitions -> codeBench.competitionController.competitionControllerGetUserCreatedCompetitions
         codeBench.apiControllerGetCompetitionById -> codeBench.competitionController.competitionControllerGetCompetitionById
         codeBench.apiControllerGetTasks -> codeBench.competitionController.competitionControllerGetTasks
         codeBench.apiControllerGetTaskById -> codeBench.competitionController.competitionControllerGetTaskById
@@ -126,12 +142,13 @@ model {
         codeBench.apiControllerGetSubmissionById -> codeBench.competitionController.competitionControllerGetSubmissionById
         codeBench.apiControllerSubmitTaskById -> codeBench.messageBroker
         codeBench.apiControllerTestTaskById -> codeBench.messageBroker
-        codeBench.apiControllerCheckPassword -> codeBench.competitionController.competitionControllerCheckPassword
+        codeBench.apiControllerAuthentificationLogin -> codeBench.authentificationController.authentificationControllerAuthentificationLogin
+        codeBench.apiControllerAuthentificationRegister -> codeBench.authentificationController.authentificationControllerAuthentificationRegister
       }
 
       testingController = container 'Модуль для тестирования' {
         description 'Настраивает контейнер, добавляет в него нужные файлы, получает результаты запуска'
-        
+
         testingControllerSubmitTaskById = component 'Проверка посылки' 'Создание контейнера с нужными фалйлами и запуск всех тестов' {
           style {
             shape rectangle
@@ -154,7 +171,13 @@ model {
 
       competitionController = container 'Модуль соревнований' {
         description 'Отвечает за создание и получение соревнований и задач'
-        competitionControllerGetCompetitions = component 'GET competitions' 'Получение всех соревнований' {
+        competitionControllerGetUserParticipationCompetitions = component 'GET user-participation-competitions/{userId}' 'Получение всех соревнований, в которых участвует пользователь' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
+        competitionControllerGetUserCreatedCompetitions = component 'GET user-created-competitions/{userId}' 'Получение всех соревнований, созданных пользователем' {
           style {
             shape rectangle
             size large
@@ -190,23 +213,37 @@ model {
             size xlarge
           }
         }
-        competitionControllerCheckPassword = component 'GET competitions/{id}/check-password' 'Проверка пароля для задачи' {
+
+        competitionControllerGetUserParticipationCompetitions -> codeBench.competitionsDatabase
+        competitionControllerGetUserCreatedCompetitions -> codeBench.competitionsDatabase
+        competitionControllerGetCompetitionById -> codeBench.competitionsDatabase
+        competitionControllerGetTasks -> codeBench.competitionsDatabase
+        competitionControllerGetTaskById -> codeBench.competitionsDatabase
+        competitionControllerGetSubmissions -> codeBench.solutionsDatabase
+        competitionControllerGetSubmissionById -> codeBench.solutionsDatabase
+      }
+
+      authentificationController = container 'Модуль аутентификации' {
+        description 'Отвечает за регистрацию, вход, jwt-токены'
+
+        authentificationControllerAuthentificationLogin = component 'POST auth/login' 'Вход' {
           style {
             shape rectangle
             size large
           }
         }
 
-        competitionControllerGetCompetitions -> codeBench.competitionsDatabase
-        competitionControllerGetCompetitionById -> codeBench.competitionsDatabase
-        competitionControllerGetTasks -> codeBench.competitionsDatabase
-        competitionControllerGetTaskById -> codeBench.competitionsDatabase
-        competitionControllerGetSubmissions -> codeBench.solutionsDatabase
-        competitionControllerGetSubmissionById -> codeBench.solutionsDatabase
-        competitionControllerCheckPassword -> codeBench.competitionsDatabase
+        authentificationControllerAuthentificationRegister = component 'POST auth/register' 'Регистрация' {
+          style {
+            shape rectangle
+            size large
+          }
+        }
 
+        authentificationControllerAuthentificationLogin -> credentialsDatabase
+        authentificationControllerAuthentificationRegister -> credentialsDatabase
       }
-      
+
       testingContainer = component 'Контейнер для тестирования' {
         description 'Используется для изолированного запуска программ'
         style {
@@ -233,8 +270,15 @@ model {
         shape storage
       }
     }
-    
+
     competitionsDatabase = container 'БД соревнований' {
+      style {
+        icon tech:postgresql
+        shape storage
+      }
+    }
+
+    credentialsDatabase = container 'БД пользовательских данных' {
       style {
         icon tech:postgresql
         shape storage
@@ -244,7 +288,7 @@ model {
 
   student -> codeBench 'использует'
   teacher -> codeBench 'использует'
-  
+
   student -> codeBench.ui 'Открывает в браузере'
   teacher -> codeBench.ui 'Открывает в браузере'
   student -> codeBench.staticContent 'Получает интерфейс'
@@ -262,12 +306,12 @@ views {
     title 'Context'
     include student, teacher, codeBench
   }
-  
+
   view containerView of codeBench {
     title 'Containers'
     include *
   }
-  
+
   view componentView of codeBench.backend {
     title 'Backend'
     include *
@@ -285,7 +329,13 @@ views {
 
   view competitionControllerView of codeBench.backend.competitionController {
     title 'CompetitionController'
-    
+
+    include *
+  }
+
+  view authentificationControllerView of codeBench.backend.authentificationController {
+    title 'AuthentificationController'
+
     include *
   }
 }

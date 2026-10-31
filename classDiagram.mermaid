@@ -1,0 +1,73 @@
+classDiagram
+    class User {
+        +int Id
+        +string PasswordHash
+    }
+
+    class Competition {
+        +int Id
+        +string Name
+        +string Description
+        +DateTimeOffset? StartDate
+        +DateTimeOffset? EndDate
+        +List~int~ TasksIds
+        +int CreatorId
+    }
+
+    class Task {
+        +int Id
+        +string Name
+        +string Description
+        +List~Language~ Languages
+    }
+
+    class Test {
+        +int Id
+        +int TaskId
+        +string? TestCode
+        +string? TestInput
+    }
+
+    class Submission {
+        +int Id
+        +int TaskId
+        +int UserId
+        +Language Language
+        +string Code
+        +DateTimeOffset SubmittedAt
+    }
+
+    class SubmissionResult {
+        +int SubmissionId
+        +bool Success
+        +string? ErrorMessage
+    }
+
+
+    class Language["enum Language"] {
+        Cpp
+        Python
+        Java
+        CSharp
+    }
+
+    class CompetitionService {
+        +List~Competition~ Competitions
+        +List~Task~ Tasks
+        +List~Submission~ Submissions
+        +GetCompetition(id)
+        +GetSubmissions(taskId)
+        +Submit(taskId, submission)
+    }
+
+    Submission "0..*" --> "1" User : UserId
+    Competition "0..*" --> "1" User : CreatorId
+    Competition "1" o-- "0..*" Task
+    Submission "0..*" --> "1" Task : TaskId
+    Test "0..*" --> "1" Task : TaskId
+    Submission "1" *-- "1" SubmissionResult
+    Task ..> Language
+    Submission ..> Language
+    CompetitionService "1" o-- "0..*" Competition
+    CompetitionService "1" o-- "0..*" Task
+    CompetitionService "1" o-- "0..*" Submission
