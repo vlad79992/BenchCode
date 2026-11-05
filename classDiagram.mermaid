@@ -1,6 +1,7 @@
 classDiagram
     class User {
         +int Id
+        +string Name
         +string PasswordHash
     }
 
@@ -38,7 +39,7 @@ classDiagram
     }
 
     class SubmissionResult {
-        +int SubmissionId
+        +int Id
         +bool Success
         +string? ErrorMessage
     }
