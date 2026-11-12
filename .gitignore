@@ -1,4 +1,11 @@
 .vs/
 .idea/
-BenchCodeMainService/bin
-BenchCodeMainService/obj
+BenchCode.AppHost/bin
+BenchCode.AppHost/obj
+BenchCode.AuthService/bin
+BenchCode.AuthService/obj
+BenchCode.ServiceDefaults/bin
+BenchCode.ServiceDefaults/obj
+BenchCode.Web/bin
+BenchCode.Web/obj
+BenchCode.Web/wwwroot

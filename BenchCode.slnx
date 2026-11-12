@@ -1,8 +1,6 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path=".dockerignore" />
-    <File Path="compose.yaml" />
-    <File Path="Dockerfile" />
-  </Folder>
-  <Project Path="BenchCodeMainService/BenchCodeMainService.csproj" />
+  <Project Path="BenchCode.AppHost/BenchCode.AppHost.csproj" />
+  <Project Path="BenchCode.AuthService/BenchCode.AuthService.csproj" Id="16494907-846c-4cd4-96e9-030b841db872" />
+  <Project Path="BenchCode.ServiceDefaults/BenchCode.ServiceDefaults.csproj" />
+  <Project Path="BenchCode.Web/BenchCode.Web.csproj" />
 </Solution>
