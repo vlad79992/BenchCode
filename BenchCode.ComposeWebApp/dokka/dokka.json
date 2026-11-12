@@ -1,0 +1,76 @@
+{
+  "moduleName": "ComposeWebApp",
+  "moduleVersion": null,
+  "outputDir": ".dokka/kotlin-api",
+  "failOnWarning": false,
+  "suppressObviousFunctions": true,
+  "suppressInheritedMembers": false,
+  "offlineMode": false,
+  "sourceSets": [
+    {
+      "displayName": "Common",
+      "sourceSetID": {
+        "scopeId": "ComposeWebApp",
+        "sourceSetName": "commonMain"
+      },
+      "analysisPlatform": "common",
+      "sourceRoots": [
+        "shared/src"
+      ]
+    },
+    {
+      "displayName": "Android",
+      "sourceSetID": {
+        "scopeId": "ComposeWebApp",
+        "sourceSetName": "androidMain"
+      },
+      "dependentSourceSets": [
+        {
+          "scopeId": "ComposeWebApp",
+          "sourceSetName": "commonMain"
+        }
+      ],
+      "analysisPlatform": "jvm",
+      "sourceRoots": [
+        "shared/src@android",
+        "androidApp/src"
+      ]
+    },
+    {
+      "displayName": "JVM",
+      "sourceSetID": {
+        "scopeId": "ComposeWebApp",
+        "sourceSetName": "jvmMain"
+      },
+      "dependentSourceSets": [
+        {
+          "scopeId": "ComposeWebApp",
+          "sourceSetName": "commonMain"
+        }
+      ],
+      "analysisPlatform": "jvm",
+      "sourceRoots": [
+        "shared/src@jvm",
+        "desktopApp/src"
+      ]
+    },
+    {
+      "displayName": "Wasm JS",
+      "sourceSetID": {
+        "scopeId": "ComposeWebApp",
+        "sourceSetName": "wasmJsMain"
+      },
+      "dependentSourceSets": [
+        {
+          "scopeId": "ComposeWebApp",
+          "sourceSetName": "commonMain"
+        }
+      ],
+      "analysisPlatform": "js",
+      "sourceRoots": [
+        "shared/src@wasmJs",
+        "webApp/src"
+      ]
+    }
+  ]
+}

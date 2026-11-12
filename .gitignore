@@ -9,3 +9,6 @@ BenchCode.ServiceDefaults/obj
 BenchCode.Web/bin
 BenchCode.Web/obj
 BenchCode.Web/wwwroot
+/.dokka/
+/_site/
+BenchCode.ComposeWebApp/dokka/target/
