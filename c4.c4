@@ -1,341 +1,216 @@
 specification {
   element actor {
-    style {
-      shape person
-      color secondary
-    }
+    style { shape person color secondary }
   }
   element system
   element container {
-    style {
-      shape rectangle
-    }
+    style { shape rectangle }
   }
   element component {
-    style {
-      shape component
-    }
+    style { shape component }
+  }
+  element endpoint {
+    style { shape rectangle size large }
+  }
+  element operation {
+    style { shape rectangle size large }
   }
 }
 
 model {
-  student = actor 'Студент' {
-    description 'Пользователь, который принимает участие в соревнованиях, отправляет свой код'
-  }
-  teacher = actor 'Преподаватель' {
-    description 'Пользователь, создает соревнования'
+  user = actor 'Пользователь' {
+    description 'Единый тип учётной записи: создаёт соревнования и участвует в них'
   }
 
-  codeBench = system 'CodeBench' {
-    description 'Система для автоматической проверки выполнения заданий'
+  dockerRuntime = system 'Docker Runtime' {
+    description 'Изолированное исполнение и компиляция решений'
+  }
+
+  benchCode = system 'BenchCode' {
+    description 'Платформа автоматической проверки решений: соревнования, задачи, изолированный прогон, рейтинг'
 
     staticContent = component 'Статичные файлы' {
-      style {
-        icon tech:webassembly
-        shape storage
-      }
+      style { icon tech:webassembly shape storage }
     }
 
     ui = container 'Фронтенд (Web-приложение)' {
-      style {
-        icon tech:kotlin
-        shape browser
-      }
+      description 'Kotlin Compose Multiplatform (WASM)'
+      style { icon tech:kotlin shape browser }
     }
 
     backend = container 'Бэкенд' {
-      style {
-        icon tech:csharp
-      }
+      description '.NET, оркестрация Aspire'
+      style { icon tech:csharp }
 
       apiController = container 'API Controller' {
-        style {
-          icon tech:csharp
-        }
-
-        apiControllerGetUserParticipationCompetitions = component 'GET user-participation-competitions/{userId}' 'Получение всех соревнований, в которых участвует пользователь' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerGetUserCreatedCompetitions = component 'GET user-created-competitions/{userId}' 'Получение всех соревнований, созданных пользователем' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerGetCompetitionById = component 'GET competitions/{id}' 'Получение соревнования по id' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerGetTasks = component 'GET competitions/{id}/tasks' 'Получение всех задач в соревновании' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerGetTaskById = component 'GET competitions/{id}/tasks/{taskId}' 'Получение всех задачи в соревновании по id' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerSubmitTaskById = component 'POST competitions/{id}/tasks/{taskId}/submit' 'Отправление посылки' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerTestTaskById = component 'POST competitions/{id}/tasks/{taskId}/test' 'Проверка на публичных тестах' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerGetSubmissions = component 'GET competitions/{id}/tasks/{taskId}/submissions' 'Получение всех посылок для задачи' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerGetSubmissionById = component 'GET competitions/{id}/tasks/{taskId}/submissions/{submissionId}' 'Получение посылки для задачи по id' {
-          style {
-            shape rectangle
-            size xlarge
-          }
-        }
-
-        apiControllerAuthentificationLogin = component 'POST auth/login' 'Вход' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        apiControllerAuthentificationRegister = component 'POST auth/register' 'Регистрация нового пользователя' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-
-        codeBench.ui -> codeBench.apiControllerGetUserParticipationCompetitions
-        codeBench.ui -> codeBench.apiControllerGetUserCreatedCompetitions
-        codeBench.ui -> codeBench.apiControllerGetCompetitionById
-        codeBench.ui -> codeBench.apiControllerGetTasks
-        codeBench.ui -> codeBench.apiControllerGetTaskById
-        codeBench.ui -> codeBench.apiControllerGetSubmissions
-        codeBench.ui -> codeBench.apiControllerGetSubmissionById
-        codeBench.ui -> codeBench.apiControllerSubmitTaskById
-        codeBench.ui -> codeBench.apiControllerTestTaskById
-        codeBench.ui -> codeBench.apiControllerAuthentificationLogin
-        codeBench.ui -> codeBench.apiControllerAuthentificationRegister
-
-        codeBench.apiControllerGetUserParticipationCompetitions -> codeBench.competitionController.competitionControllerGetUserParticipationCompetitions
-        codeBench.apiControllerGetUserCreatedCompetitions -> codeBench.competitionController.competitionControllerGetUserCreatedCompetitions
-        codeBench.apiControllerGetCompetitionById -> codeBench.competitionController.competitionControllerGetCompetitionById
-        codeBench.apiControllerGetTasks -> codeBench.competitionController.competitionControllerGetTasks
-        codeBench.apiControllerGetTaskById -> codeBench.competitionController.competitionControllerGetTaskById
-        codeBench.apiControllerGetSubmissions -> codeBench.competitionController.competitionControllerGetSubmissions
-        codeBench.apiControllerGetSubmissionById -> codeBench.competitionController.competitionControllerGetSubmissionById
-        codeBench.apiControllerSubmitTaskById -> codeBench.messageBroker
-        codeBench.apiControllerTestTaskById -> codeBench.messageBroker
-        codeBench.apiControllerAuthentificationLogin -> codeBench.authentificationController.authentificationControllerAuthentificationLogin
-        codeBench.apiControllerAuthentificationRegister -> codeBench.authentificationController.authentificationControllerAuthentificationRegister
+        style { icon tech:csharp }
+        epRegister = endpoint 'POST auth/register' 'Регистрация'
+        epLogin = endpoint 'POST auth/login' 'Вход'
+        epRefresh = endpoint 'POST auth/refresh' 'Обновление токена'
+        epLogout = endpoint 'POST auth/logout' 'Выход'
+        epMyJoined = endpoint 'GET me/competitions?scope=joined' 'Соревнования, где я участник'
+        epMyOwned = endpoint 'GET me/competitions?scope=owned' 'Соревнования, где я организатор'
+        epCreateCompetition = endpoint 'POST competitions' 'Создание соревнования (черновик)'
+        epJoin = endpoint 'POST competitions/{id}/join' 'Присоединение по коду'
+        epGetCompetition = endpoint 'GET competitions/{id}' 'Получение соревнования'
+        epUpdateCompetition = endpoint 'PATCH competitions/{id}' 'Изменение настроек'
+        epPublish = endpoint 'POST competitions/{id}/publish' 'Публикация соревнования'
+        epArchive = endpoint 'POST competitions/{id}/archive' 'Архивация соревнования'
+        epDeleteCompetition = endpoint 'DELETE competitions/{id}' 'Удаление соревнования без посылок'
+        epParticipants = endpoint 'GET competitions/{id}/participants' 'Список участников'
+        epGetTasks = endpoint 'GET competitions/{id}/tasks' 'Список задач'
+        epGetTask = endpoint 'GET competitions/{id}/tasks/{taskId}' 'Задача и публичные тесты'
+        epCreateTask = endpoint 'POST competitions/{id}/tasks' 'Создание задачи'
+        epUpdateTask = endpoint 'PATCH competitions/{id}/tasks/{taskId}' 'Изменение задачи'
+        epDeleteTask = endpoint 'DELETE competitions/{id}/tasks/{taskId}' 'Удаление задачи без посылок'
+        epAddTests = endpoint 'POST competitions/{id}/tasks/{taskId}/tests' 'Добавление тестов'
+        epSubmit = endpoint 'POST competitions/{id}/tasks/{taskId}/submit' 'Отправка посылки'
+        epTest = endpoint 'POST competitions/{id}/tasks/{taskId}/test' 'Прогон на публичных тестах'
+        epSubmissions = endpoint 'GET competitions/{id}/tasks/{taskId}/submissions' 'Реестр посылок задачи'
+        epSubmission = endpoint 'GET competitions/{id}/tasks/{taskId}/submissions/{submissionId}' 'Карточка посылки'
+        epMySubmissions = endpoint 'GET me/submissions' 'Мои посылки'
+        epLeaderboard = endpoint 'GET competitions/{id}/leaderboard' 'Таблица результатов'
+        epExport = endpoint 'GET competitions/{id}/export' 'Экспорт CSV (Should have)'
       }
 
-      testingController = container 'Модуль для тестирования' {
-        description 'Настраивает контейнер, добавляет в него нужные файлы, получает результаты запуска'
-
-        testingControllerSubmitTaskById = component 'Проверка посылки' 'Создание контейнера с нужными фалйлами и запуск всех тестов' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        testingControllerTestTaskById = component 'Тестирование посылки' 'Создание контейнера с нужными фалйлами и запуск публичных тестов' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        codeBench.messageBroker -> testingControllerSubmitTaskById
-        testingControllerSubmitTaskById -> codeBench.competitionsDatabase 'получение тестов'
-        testingControllerSubmitTaskById -> codeBench.testingContainer
-        codeBench.messageBroker -> testingControllerTestTaskById
-        testingControllerTestTaskById -> codeBench.competitionsDatabase 'получение публичных тестов'
-        testingControllerTestTaskById -> codeBench.testingContainer
+      authorization = component 'Проверка прав доступа' {
+        description 'Валидация токена и права Owner / Participant на объект; 401 / 403 / 404'
       }
 
       competitionController = container 'Модуль соревнований' {
-        description 'Отвечает за создание и получение соревнований и задач'
-        competitionControllerGetUserParticipationCompetitions = component 'GET user-participation-competitions/{userId}' 'Получение всех соревнований, в которых участвует пользователь' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        competitionControllerGetUserCreatedCompetitions = component 'GET user-created-competitions/{userId}' 'Получение всех соревнований, созданных пользователем' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        competitionControllerGetCompetitionById = component 'GET competitions/{id}' 'Получение соревнования по id' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        competitionControllerGetTasks = component 'GET competitions/{id}/tasks' 'Получение всех задач в соревновании' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        competitionControllerGetTaskById = component 'GET competitions/{id}/tasks/{taskId}' 'Получение всех задачи в соревновании по id' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        competitionControllerGetSubmissions = component 'GET competitions/{id}/tasks/{taskId}/submissions' 'Получение всех посылок для задачи' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-        competitionControllerGetSubmissionById = component 'GET competitions/{id}/tasks/{taskId}/submissions/{submissionId}' 'Получение посылки для задачи по id' {
-          style {
-            shape rectangle
-            size xlarge
-          }
-        }
-
-        competitionControllerGetUserParticipationCompetitions -> codeBench.competitionsDatabase
-        competitionControllerGetUserCreatedCompetitions -> codeBench.competitionsDatabase
-        competitionControllerGetCompetitionById -> codeBench.competitionsDatabase
-        competitionControllerGetTasks -> codeBench.competitionsDatabase
-        competitionControllerGetTaskById -> codeBench.competitionsDatabase
-        competitionControllerGetSubmissions -> codeBench.solutionsDatabase
-        competitionControllerGetSubmissionById -> codeBench.solutionsDatabase
+        description 'Соревнования, задачи, тесты, посылки, рейтинг'
+        opMyJoined = operation 'ListJoinedCompetitions' 'Соревнования по записи участия'
+        opMyOwned = operation 'ListOwnedCompetitions' 'Соревнования по праву Owner'
+        opCreate = operation 'CreateCompetition' 'Черновик, код-идентификатор, запись Owner'
+        opJoin = operation 'JoinByCode' 'Идемпотентное создание записи Participant'
+        opGet = operation 'GetCompetition' 'Данные соревнования и версия'
+        opUpdate = operation 'UpdateCompetition' 'Настройки, дедлайн, веса, флаг просмотра'
+        opPublish = operation 'PublishCompetition' 'Проверка задач и публикация'
+        opArchive = operation 'ArchiveCompetition' 'Архивация'
+        opDelete = operation 'DeleteCompetition' 'Удаление при отсутствии посылок'
+        opParticipants = operation 'ListParticipants' 'Имя, фамилия, дата присоединения'
+        opTasks = operation 'ListTasks' 'Карточки задач и статусы пользователя'
+        opTask = operation 'GetTask' 'Условие, лимиты, публичные тесты'
+        opCreateTask = operation 'CreateTask' 'Задача, лимиты, языки, чекер'
+        opUpdateTask = operation 'UpdateTask' 'Изменение задачи и тестов'
+        opDeleteTask = operation 'DeleteTask' 'Удаление или архивация задачи'
+        opAddTests = operation 'AddTests' 'Проверка лимитов размера и количества'
+        opVersion = operation 'IncrementVersion' 'Увеличение версии при изменении сравнимости'
+        opSubmissions = operation 'ListTaskSubmissions' 'Реестр посылок задачи'
+        opSubmission = operation 'GetSubmission' 'Карточка посылки и результаты по тестам'
+        opMySubmissions = operation 'ListMySubmissions' 'История посылок пользователя'
+        opLeaderboard = operation 'BuildLeaderboard' 'Расчёт рейтинга на лету'
+        opExport = operation 'ExportResults' 'Формирование CSV'
       }
 
-      authentificationController = container 'Модуль аутентификации' {
-        description 'Отвечает за регистрацию, вход, jwt-токены'
+      authenticationController = container 'Модуль аутентификации' {
+        description 'Регистрация, вход, токены, согласие на обработку данных'
+        opRegister = operation 'Register' 'Создание учётной записи и фиксация согласия'
+        opLogin = operation 'Login' 'Проверка пароля, выдача токенов'
+        opRefresh = operation 'Refresh' 'Обновление токена доступа'
+        opLogout = operation 'Logout' 'Отзыв токена обновления'
+      }
 
-        authentificationControllerAuthentificationLogin = component 'POST auth/login' 'Вход' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-
-        authentificationControllerAuthentificationRegister = component 'POST auth/register' 'Регистрация' {
-          style {
-            shape rectangle
-            size large
-          }
-        }
-
-        authentificationControllerAuthentificationLogin -> credentialsDatabase
-        authentificationControllerAuthentificationRegister -> credentialsDatabase
+      testingController = container 'Модуль тестирования' {
+        description 'Подготовка окружения, компиляция, прогон, снятие замеров'
+        opFullRun = operation 'RunFullSubmission' 'Прогон на всех тестах и запись результатов'
+        opPublicRun = operation 'RunPublicTests' 'Прогон на публичных тестах без сохранения'
       }
 
       testingContainer = component 'Контейнер для тестирования' {
-        description 'Используется для изолированного запуска программ'
-        style {
-          icon tech:docker
-        }
+        description 'Изолированное окружение: сеть запрещена, non-root, лимиты CPU и памяти'
+        style { icon tech:docker }
       }
-
-      apiController -> messageBroker 'Добавляет решение в очередь'
-      messageBroker -> testingController
-      apiController -> competitionController
     }
 
     messageBroker = component 'Брокер сообщений' {
-      description 'Используется для сглаживания нагрузки при получении большого числа запросов'
-      style {
-        icon tech:rabbitmq
-        shape queue
-      }
+      description 'RabbitMQ: сглаживание пиков приёма посылок'
+      style { icon tech:rabbitmq shape queue }
     }
 
-    solutionsDatabase = container 'БД решений' {
-      style {
-        icon tech:postgresql
-        shape storage
-      }
-    }
-
-    competitionsDatabase = container 'БД соревнований' {
-      style {
-        icon tech:postgresql
-        shape storage
-      }
-    }
-
-    credentialsDatabase = container 'БД пользовательских данных' {
-      style {
-        icon tech:postgresql
-        shape storage
-      }
+    database = container 'БД PostgreSQL' {
+      description 'Пользователи, соревнования, участия, задачи, тесты, посылки, результаты по тестам'
+      style { icon tech:postgresql shape storage }
     }
   }
 
-  student -> codeBench 'использует'
-  teacher -> codeBench 'использует'
+  user -> benchCode.ui 'Открывает в браузере'
+  user -> benchCode.staticContent 'Получает файлы приложения'
+  benchCode.staticContent -> benchCode.ui 'Отдаёт WASM-бандл'
+  benchCode.ui -> benchCode.backend.apiController 'Вызывает REST API'
 
-  student -> codeBench.ui 'Открывает в браузере'
-  teacher -> codeBench.ui 'Открывает в браузере'
-  student -> codeBench.staticContent 'Получает интерфейс'
-  teacher -> codeBench.staticContent 'Получает интерфейс'
-  codeBench.staticContent -> codeBench.ui 'Отправляет'
-  codeBench.ui -> codeBench.backend 'Вызывает REST API'
+  benchCode.backend.apiController -> benchCode.backend.authorization 'Проверка токена и прав на объект'
+  benchCode.backend.authorization -> benchCode.database 'Чтение записей участия'
 
-  codeBench.backend.testingController -> codeBench.testingContainer
-  codeBench.backend.testingController -> codeBench.solutionsDatabase 'Получение и запись данных о решениях\nSQL'
-  codeBench.backend.competitionController -> codeBench.competitionsDatabase 'Получение и запись данных о соревнованиях и задачах\nSQL'
+  benchCode.backend.apiController.epRegister -> benchCode.backend.authenticationController.opRegister
+  benchCode.backend.apiController.epLogin -> benchCode.backend.authenticationController.opLogin
+  benchCode.backend.apiController.epRefresh -> benchCode.backend.authenticationController.opRefresh
+  benchCode.backend.apiController.epLogout -> benchCode.backend.authenticationController.opLogout
+  benchCode.backend.authenticationController -> benchCode.database 'Пользователи, хеши паролей, согласия'
+
+  benchCode.backend.apiController.epMyJoined -> benchCode.backend.competitionController.opMyJoined
+  benchCode.backend.apiController.epMyOwned -> benchCode.backend.competitionController.opMyOwned
+  benchCode.backend.apiController.epCreateCompetition -> benchCode.backend.competitionController.opCreate
+  benchCode.backend.apiController.epJoin -> benchCode.backend.competitionController.opJoin
+  benchCode.backend.apiController.epGetCompetition -> benchCode.backend.competitionController.opGet
+  benchCode.backend.apiController.epUpdateCompetition -> benchCode.backend.competitionController.opUpdate
+  benchCode.backend.apiController.epPublish -> benchCode.backend.competitionController.opPublish
+  benchCode.backend.apiController.epArchive -> benchCode.backend.competitionController.opArchive
+  benchCode.backend.apiController.epDeleteCompetition -> benchCode.backend.competitionController.opDelete
+  benchCode.backend.apiController.epParticipants -> benchCode.backend.competitionController.opParticipants
+  benchCode.backend.apiController.epGetTasks -> benchCode.backend.competitionController.opTasks
+  benchCode.backend.apiController.epGetTask -> benchCode.backend.competitionController.opTask
+  benchCode.backend.apiController.epCreateTask -> benchCode.backend.competitionController.opCreateTask
+  benchCode.backend.apiController.epUpdateTask -> benchCode.backend.competitionController.opUpdateTask
+  benchCode.backend.apiController.epDeleteTask -> benchCode.backend.competitionController.opDeleteTask
+  benchCode.backend.apiController.epAddTests -> benchCode.backend.competitionController.opAddTests
+  benchCode.backend.apiController.epSubmissions -> benchCode.backend.competitionController.opSubmissions
+  benchCode.backend.apiController.epSubmission -> benchCode.backend.competitionController.opSubmission
+  benchCode.backend.apiController.epMySubmissions -> benchCode.backend.competitionController.opMySubmissions
+  benchCode.backend.apiController.epLeaderboard -> benchCode.backend.competitionController.opLeaderboard
+  benchCode.backend.apiController.epExport -> benchCode.backend.competitionController.opExport
+
+  benchCode.backend.competitionController.opUpdate -> benchCode.backend.competitionController.opVersion
+  benchCode.backend.competitionController.opUpdateTask -> benchCode.backend.competitionController.opVersion
+  benchCode.backend.competitionController.opAddTests -> benchCode.backend.competitionController.opVersion
+  benchCode.backend.competitionController -> benchCode.database 'Чтение и запись соревнований, задач, тестов, посылок'
+
+  benchCode.backend.apiController.epSubmit -> benchCode.messageBroker 'Постановка посылки в очередь'
+  benchCode.backend.apiController.epTest -> benchCode.messageBroker 'Постановка публичного прогона в очередь'
+  benchCode.messageBroker -> benchCode.backend.testingController.opFullRun
+  benchCode.messageBroker -> benchCode.backend.testingController.opPublicRun
+  benchCode.backend.testingController -> benchCode.database 'Тесты задачи, запись результатов и метрик'
+  benchCode.backend.testingController -> benchCode.backend.testingContainer 'Компиляция и прогон'
+  benchCode.backend.testingContainer -> dockerRuntime 'Создание и удаление изолированного окружения'
 }
 
 views {
   view contextView {
     title 'Context'
-    include student, teacher, codeBench
+    include user, benchCode, dockerRuntime
   }
-
-  view containerView of codeBench {
+  view containerView of benchCode {
     title 'Containers'
     include *
   }
-
-  view componentView of codeBench.backend {
+  view backendView of benchCode.backend {
     title 'Backend'
     include *
   }
-
-  view apiControllerView of codeBench.backend.apiController {
+  view apiControllerView of benchCode.backend.apiController {
     title 'ApiController'
     include *
   }
-
-  view testingControllerView of codeBench.backend.testingController {
-    title 'TestingController'
-    include *
-  }
-
-  view competitionControllerView of codeBench.backend.competitionController {
+  view competitionControllerView of benchCode.backend.competitionController {
     title 'CompetitionController'
-
     include *
   }
-
-  view authentificationControllerView of codeBench.backend.authentificationController {
-    title 'AuthentificationController'
-
+  view authenticationControllerView of benchCode.backend.authenticationController {
+    title 'AuthenticationController'
+    include *
+  }
+  view testingControllerView of benchCode.backend.testingController {
+    title 'TestingController'
     include *
   }
 }
