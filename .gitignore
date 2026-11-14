@@ -8,6 +8,8 @@ BenchCode.ServiceDefaults/bin
 BenchCode.ServiceDefaults/obj
 BenchCode.Web/bin
 BenchCode.Web/obj
+BenchCode.Test/bin
+BenchCode.Test/obj
 BenchCode.Web/wwwroot
 /.dokka/
 /_site/

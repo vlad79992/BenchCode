@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "M9b4/sHl2XY=",
+  "success": true,
+  "projectFilePath": "/Users/ajdamir/Documents/Codes/CSharp/BenchCode/BenchCodeMainService/BenchCodeMainService.csproj",
+  "expectedPackageFiles": [
+    "/Users/ajdamir/.nuget/packages/microsoft.aspnetcore.openapi/10.0.12/microsoft.aspnetcore.openapi.10.0.12.nupkg.sha512",
+    "/Users/ajdamir/.nuget/packages/microsoft.openapi/2.12.0/microsoft.openapi.2.12.0.nupkg.sha512",
+    "/Users/ajdamir/.nuget/packages/scalar.aspnetcore/2.17.9/scalar.aspnetcore.2.17.9.nupkg.sha512",
+    "/Users/ajdamir/.nuget/packages/microsoft.netcore.app.ref/10.0.15/microsoft.netcore.app.ref.10.0.15.nupkg.sha512",
+    "/Users/ajdamir/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.15/microsoft.aspnetcore.app.ref.10.0.15.nupkg.sha512",
+    "/Users/ajdamir/.nuget/packages/microsoft.netcore.app.host.osx-arm64/10.0.15/microsoft.netcore.app.host.osx-arm64.10.0.15.nupkg.sha512"
+  ],
+  "logs": []
+}

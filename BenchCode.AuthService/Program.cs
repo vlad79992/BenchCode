@@ -55,7 +55,7 @@ builder.Services.AddOpenIddict()
     .AddCore(opt =>
     {
         opt.UseEntityFrameworkCore()
-           .UseDbContext<AuthDbContext>();
+            .UseDbContext<AuthDbContext>();
     })
     .AddServer(opt =>
     {
@@ -63,7 +63,7 @@ builder.Services.AddOpenIddict()
         opt.SetTokenEndpointUris("/connect/token");
 
         opt.AllowPasswordFlow()
-           .AllowRefreshTokenFlow();
+            .AllowRefreshTokenFlow();
 
         opt.RegisterScopes("benchcode-api");
         opt.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
@@ -72,18 +72,18 @@ builder.Services.AddOpenIddict()
         if (signingCertificate is null || encryptionCertificate is null)
         {
             opt.AddDevelopmentEncryptionCertificate()
-               .AddDevelopmentSigningCertificate();
+                .AddDevelopmentSigningCertificate();
         }
         else
         {
             opt.AddSigningCertificate(signingCertificate)
-               .AddEncryptionCertificate(encryptionCertificate);
+                .AddEncryptionCertificate(encryptionCertificate);
         }
 
         opt.DisableAccessTokenEncryption();
 
         opt.UseAspNetCore()
-           .EnableTokenEndpointPassthrough();
+            .EnableTokenEndpointPassthrough();
     })
     .AddValidation(opt =>
     {
@@ -148,4 +148,8 @@ static X509Certificate2 LoadCertificate(IConfiguration configuration, string nam
     }
 
     return X509CertificateLoader.LoadPkcs12FromFile(path, password);
+}
+
+public partial class Program
+{
 }
