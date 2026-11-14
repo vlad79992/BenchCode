@@ -1,0 +1,70 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - aspire
+  pull_request:
+    branches:
+      - main
+      - aspire
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: BenchCode.ComposeWebApp/dokka/pom.xml
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore DocFX tool
+        run: dotnet tool restore
+
+      - name: Generate Kotlin API with Dokka CLI
+        shell: pwsh
+        run: ./docs/scripts/build-kotlin-api.ps1
+
+      - name: Build DocFX site
+        run: dotnet tool run docfx build docfx.json
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

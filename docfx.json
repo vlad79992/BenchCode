@@ -1,0 +1,55 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "BenchCode.*/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
+          "src": "."
+        }
+      ],
+      "dest": "_dotnet-api"
+    }
+  ],
+  "rules": {
+    "InvalidFileLink": "info",
+    "InvalidHref": "info"
+  },
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.md",
+          "toc.yml"
+        ],
+        "src": "docs",
+        "dest": "."
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "**/*"
+        ],
+        "src": ".dokka/kotlin-api",
+        "dest": "kotlin-api"
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appTitle": "BenchCode",
+      "_appName": "BenchCode",
+      "_enableSearch": true,
+      "_lang": "ru"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+- name: Главная
+  href: index.md
+- name: Начало работы
+  href: getting-started.md
+- name: Архитектура
+  href: architecture.md
+- name: Технологии
+  href: technologies.md
+- name: Руководство разработчика
+  href: development-guide.md
+- name: Руководство по документации
+  href: documentation-guide.md
+- name: Решение проблем
+  href: troubleshooting.md
+- name: .NET (позже)
+  href: dotnet/index.md
+- name: Kotlin API
+  href: kotlin-api/index.html
