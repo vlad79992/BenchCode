@@ -35,7 +35,9 @@ var composeWasmBuild = builder.AddExecutable(
             composeWebAppDirectory
         ]);
 
-var postgres = builder.AddPostgres("postgres");
+var postgres = builder
+    .AddPostgres("postgres")
+    .WithDataVolume();
 
 builder.AddProject<Projects.BenchCode_Web>("web")
     .WaitForCompletion(composeWasmBuild);
