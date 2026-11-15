@@ -1,0 +1,144 @@
+classDiagram
+direction LR
+
+class ApplicationUser["ApplicationUser (IdentityUser)"] {
+  +int Id
+  +string Email
+  +string FirstName
+  +string LastName
+  +string PasswordHash
+  +DateTimeOffset ConsentAt
+  +string ConsentVersion
+  +DateTimeOffset CreatedAt
+}
+
+class Competition {
+  +string Id
+  +string Name
+  +string? Description
+  +string? Group
+  +int CreatorId
+  +DateTimeOffset? Deadline
+  +CompetitionStatus Status
+  +int Version
+  +double WeightTime
+  +double WeightMemory
+  +bool AllowViewOthersCode
+  +int DefaultTimeLimitMs
+  +int DefaultMemoryLimitMb
+  +DateTimeOffset CreatedAt
+}
+
+class Participation {
+  +int UserId
+  +string CompetitionId
+  +ContestPermission Permission
+  +DateTimeOffset JoinedAt
+}
+
+class Task {
+  +int Id
+  +string CompetitionId
+  +int OrderNo
+  +string Name
+  +string StatementMarkdown
+  +int TimeLimitMs
+  +int MemoryLimitMb
+  +CheckerType Checker
+  +Language? CheckerLanguage
+  +string? CheckerSource
+  +List~Language~ AllowedLanguages
+  +bool IsArchived
+  +DateTimeOffset CreatedAt
+}
+
+class Test {
+  +int Id
+  +int TaskId
+  +int OrderNo
+  +bool IsPublic
+  +string? InputText
+  +bytes? InputFile
+  +string? ExpectedOutputText
+  +bytes? ExpectedOutputFile
+}
+
+class Submission {
+  +int Id
+  +string CompetitionId
+  +int TaskId
+  +int UserId
+  +Language Language
+  +string Code
+  +DateTimeOffset SubmittedAt
+  +int CompetitionVersion
+  +bool IsLate
+  +SubmissionStatus Status
+  +Verdict? Verdict
+  +int? TimeMs
+  +int? MemoryKb
+  +string? ErrorMessage
+}
+
+class TestResult {
+  +int Id
+  +int SubmissionId
+  +int TestId
+  +Verdict Verdict
+  +int TimeMs
+  +int MemoryKb
+  +string? Diff
+}
+
+class Language["enum Language"] {
+  Cpp
+  Python
+  Java
+  CSharp
+}
+class Verdict["enum Verdict"] {
+  AC
+  WA
+  CE
+  RE
+  TLE
+  MLE
+}
+class SubmissionStatus["enum SubmissionStatus"] {
+  Testing
+  Finished
+  SystemError
+}
+class CheckerType["enum CheckerType"] {
+  ExactText
+  CustomChecker
+}
+class ContestPermission["enum ContestPermission"] {
+  Owner
+  Participant
+}
+class CompetitionStatus["enum CompetitionStatus"] {
+  Draft
+  Published
+  Archived
+}
+
+ApplicationUser "1" -- "0..*" Participation : UserId
+Competition "1" -- "1..*" Participation : CompetitionId
+ApplicationUser "1" -- "0..*" Competition : CreatorId
+Competition "1" *-- "0..*" Task
+Task "1" *-- "1..*" Test
+Task "1" -- "0..*" Submission : TaskId
+ApplicationUser "1" -- "0..*" Submission : UserId
+Competition "1" -- "0..*" Submission : CompetitionId
+Submission "1" *-- "0..*" TestResult
+Test "1" -- "0..*" TestResult : TestId
+
+Participation ..> ContestPermission
+Competition ..> CompetitionStatus
+Task ..> CheckerType
+Task ..> Language
+Submission ..> Language
+Submission ..> SubmissionStatus
+Submission ..> Verdict
+TestResult ..> Verdict

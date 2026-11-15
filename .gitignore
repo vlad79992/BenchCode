@@ -11,6 +11,7 @@ BenchCode.Web/obj
 BenchCode.Test/bin
 BenchCode.Test/obj
 BenchCode.Web/wwwroot
-/.dokka/
-/_site/
+.dokka
+_site
+_dotnet-api
 BenchCode.ComposeWebApp/dokka/target/

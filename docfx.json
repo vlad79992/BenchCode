@@ -38,6 +38,11 @@
         ],
         "src": ".dokka/kotlin-api",
         "dest": "kotlin-api"
+      },
+      {
+        "files": [
+          "docs/images/**"
+        ]
       }
     ],
     "output": "_site",
