@@ -3,12 +3,10 @@ name: Documentation
 on:
   push:
     branches:
-      - main
-      - aspire
+      - master
   pull_request:
     branches:
-      - main
-      - aspire
+      - master
   workflow_dispatch:
 
 permissions:
