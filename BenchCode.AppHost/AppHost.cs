@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting;
+using Scalar.Aspire;
 
 var builder = DistributedApplication.CreateBuilder(args);
 var repositoryRoot = Path.GetFullPath(
@@ -43,8 +44,23 @@ builder.AddProject<Projects.BenchCode_Web>("web")
     .WaitForCompletion(composeWasmBuild);
 
 var authDb = postgres.AddDatabase("authdb");
-builder.AddProject<Projects.BenchCode_AuthService>("auth")
+var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
     .WaitFor(authDb)
     .WithReference(authDb);
+
+//var competitionsDb = postgres.AddDatabase("competitionsdb");
+var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
+
+if (builder.Environment.IsDevelopment())
+{
+    var scalar = builder.AddScalarApiReference(opt =>
+    {
+        opt.PreferHttpsEndpoint();
+        opt.AllowSelfSignedCertificates();
+    });
+
+    scalar.WithApiReference(authService)
+          .WithApiReference(programRunnerService);
+}
 
 builder.Build().Run();
