@@ -17,10 +17,11 @@ https://vlad79992.github.io/BenchCode
 ```bash
 dotnet pwsh ./scripts/generate-docs.ps1
 ```
+
 ### или 
 *поднимает сервер для просмотра документации*
 ```bash
-dotnet docfx docfx.json --serve
+dotnet pwsh ./scripts/generate-docs.ps1 -Serve
 ```
 
 ## Генерация отчета о тестах:
