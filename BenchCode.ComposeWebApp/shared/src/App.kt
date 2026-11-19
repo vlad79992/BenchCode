@@ -12,13 +12,19 @@ import org.koin.dsl.koinConfiguration
 @Composable
 @DevelopmentEntryPoint
 fun App() {
-    val platformModules = rememberPlatformModules()
-    KoinApplication(configuration = koinConfiguration(declaration = {
-        modules(platformModules)
-        modules(appModule)
-    }), content = {
+  val platformModules = rememberPlatformModules()
+  KoinApplication(
+      configuration =
+          koinConfiguration(
+              declaration = {
+                modules(platformModules)
+                modules(appModule)
+              }
+          ),
+      content = {
         MaterialTheme {
-            NavigationRoot()
+          NavigationRoot()
         }
-    })
+      },
+  )
 }
