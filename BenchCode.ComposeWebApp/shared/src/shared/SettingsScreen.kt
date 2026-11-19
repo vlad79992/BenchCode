@@ -25,28 +25,28 @@ import org.koin.compose.viewmodel.koinViewModel
 @PreviewLightDark
 @Composable
 fun Settings() {
-    val viewmodel = koinViewModel<SettingsViewModel>()
-    val counter by viewmodel.counter.collectAsStateWithLifecycle()
+  val viewmodel = koinViewModel<SettingsViewModel>()
+  val counter by viewmodel.counter.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
+  ) {
+    Text(
+        text = "Кликов сохранено в DataStore: $counter",
+        style = MaterialTheme.typography.bodyMedium,
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(
+        onClick = { viewmodel.incrementCounter() },
+        modifier = Modifier.width(200.dp),
     ) {
-        Text(
-            text = "Кликов сохранено в DataStore: $counter",
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = { viewmodel.incrementCounter() },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text("Сохранить клик")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        LoadingIndicator(modifier = Modifier.height(150.dp).width(150.dp))
+      Text("Сохранить клик")
     }
+
+    Spacer(modifier = Modifier.height(8.dp))
+    LoadingIndicator(modifier = Modifier.height(150.dp).width(150.dp))
+  }
 }

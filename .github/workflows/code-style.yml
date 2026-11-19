@@ -1,0 +1,46 @@
+name: Code style
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Restore .NET solution
+        run: dotnet restore BenchCode.slnx
+
+      - name: Restore .NET tools
+        run: dotnet tool restore
+
+      - name: Cache ktfmt
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/benchcode/ktfmt
+          key: ktfmt-0.64
+
+      - name: Verify code style (check only)
+        run: dotnet pwsh ./scripts/format-code.ps1 -Check

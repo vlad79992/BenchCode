@@ -7,7 +7,7 @@ namespace BenchCode.Test;
 
 public sealed class AuthFixture : IAsyncLifetime
 {
-    private const string ConnectionStringEnvironmentVariable = "ConnectionStrings__authdb";
+    private const string connectionStringEnvironmentVariable = "ConnectionStrings__authdb";
 
     private readonly PostgreSqlContainer dbContainer =
         new PostgreSqlBuilder("postgres:16-alpine").Build();
@@ -19,12 +19,12 @@ public sealed class AuthFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         previousConnectionString =
-            Environment.GetEnvironmentVariable(ConnectionStringEnvironmentVariable);
+            Environment.GetEnvironmentVariable(connectionStringEnvironmentVariable);
 
         await dbContainer.StartAsync();
 
         Environment.SetEnvironmentVariable(
-            ConnectionStringEnvironmentVariable,
+            connectionStringEnvironmentVariable,
             dbContainer.GetConnectionString());
 
         Factory = new WebApplicationFactory<Program>()
@@ -60,7 +60,7 @@ public sealed class AuthFixture : IAsyncLifetime
             finally
             {
                 Environment.SetEnvironmentVariable(
-                    ConnectionStringEnvironmentVariable,
+                    connectionStringEnvironmentVariable,
                     previousConnectionString);
             }
         }

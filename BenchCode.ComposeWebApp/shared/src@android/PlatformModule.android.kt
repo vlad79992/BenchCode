@@ -11,14 +11,14 @@ import org.koin.dsl.module
 
 @Composable
 actual fun rememberPlatformModules(): List<Module> {
-    val context = LocalContext.current.applicationContext
-    return remember(context) {
-        listOf(
-            module {
-                single<DataStore<Preferences>> {
-                    createDataStore(context = context)
-                }
-            }
-        )
-    }
+  val context = LocalContext.current.applicationContext
+  return remember(context) {
+    listOf(
+        module {
+          single<DataStore<Preferences>> {
+            createDataStore(context = context)
+          }
+        }
+    )
+  }
 }

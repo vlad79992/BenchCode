@@ -10,13 +10,13 @@ import org.koin.dsl.module
 
 @Composable
 actual fun rememberPlatformModules(): List<Module> {
-    return remember {
-        listOf(
-            module {
-                single<DataStore<Preferences>> {
-                    createDataStore()
-                }
-            }
-        )
-    }
+  return remember {
+    listOf(
+        module {
+          single<DataStore<Preferences>> {
+            createDataStore()
+          }
+        }
+    )
+  }
 }
