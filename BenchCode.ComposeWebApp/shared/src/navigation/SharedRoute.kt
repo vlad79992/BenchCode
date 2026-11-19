@@ -5,8 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface SharedRoute : NavKey {
-    @Serializable
-    data object RoleSelection : SharedRoute, NavKey
-    @Serializable
-    data object Settings : SharedRoute, NavKey
+  @Serializable data object RoleSelection : SharedRoute, NavKey
+
+  @Serializable data object Settings : SharedRoute, NavKey
 }

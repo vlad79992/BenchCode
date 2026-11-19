@@ -8,19 +8,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.codebench.composewebapp.data.UserPreferencesRepository
 
-class SettingsViewModel(
-    private val repository: UserPreferencesRepository
-) : ViewModel() {
+class SettingsViewModel(private val repository: UserPreferencesRepository) : ViewModel() {
 
-    val counter: StateFlow<Int> = repository.counterFlow.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0
-    )
+  val counter: StateFlow<Int> =
+      repository.counterFlow.stateIn(
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+          initialValue = 0,
+      )
 
-    fun incrementCounter() {
-        viewModelScope.launch {
-            repository.incrementCounter()
-        }
+  fun incrementCounter() {
+    viewModelScope.launch {
+      repository.incrementCounter()
     }
+  }
 }

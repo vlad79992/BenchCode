@@ -20,33 +20,33 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CompetitionSelection() {
-    val viewModel = koinViewModel<CompetitionSelectionViewModel>()
-    val backstack = LocalNavBackStack.current
+  val viewModel = koinViewModel<CompetitionSelectionViewModel>()
+  val backstack = LocalNavBackStack.current
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
+  ) {
+    OutlinedTextField(
+        state = viewModel.competitionId,
+        label = { Text("Код соревнования") },
+    )
+    Button(
+        onClick = {
+          val id = viewModel.competitionId.text.toString()
+          backstack.add(StudentRoute.CompetitionMainScreen(id))
+        },
+        modifier = Modifier.width(200.dp),
     ) {
-        OutlinedTextField(
-            state = viewModel.competitionId,
-            label = { Text("Код соревнования") }
-        )
-        Button(
-            onClick = {
-                val id = viewModel.competitionId.text.toString()
-                backstack.add(StudentRoute.CompetitionMainScreen(id))
-            },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text("Перейти")
-        }
+      Text("Перейти")
     }
+  }
 }
 
 @Composable
 @Preview(name = "Desktop", device = Devices.DESKTOP, showSystemUi = true)
 @Preview(name = "Phone", device = Devices.PHONE, showSystemUi = true)
 fun CompetitionSelectionPreview() {
-    CompetitionSelection()
+  CompetitionSelection()
 }

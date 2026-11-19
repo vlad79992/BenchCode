@@ -21,30 +21,31 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun CompetitionMainScreen(competitionId: String) {
-    val viewModel = koinViewModel<CompetitionMainScreenViewModel> {
+  val viewModel =
+      koinViewModel<CompetitionMainScreenViewModel> {
         parametersOf(competitionId)
-    }
+      }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Card {
-            Text(
-                "Код соревнования: ${viewModel.competitionId}",
-                fontSize = 48.sp,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.W600,
-                modifier = Modifier.padding(24.dp)
-            )
-        }
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
+  ) {
+    Card {
+      Text(
+          "Код соревнования: ${viewModel.competitionId}",
+          fontSize = 48.sp,
+          fontStyle = FontStyle.Italic,
+          fontWeight = FontWeight.W600,
+          modifier = Modifier.padding(24.dp),
+      )
     }
+  }
 }
 
 @Composable
 @Preview(name = "Desktop", device = Devices.DESKTOP, showSystemUi = true)
 @Preview(name = "Phone", device = Devices.PHONE, showSystemUi = true)
 fun CompetitionPreview() {
-    CompetitionMainScreen("123")
+  CompetitionMainScreen("123")
 }

@@ -17,27 +17,26 @@ import org.koin.dsl.navigation3.navigation
 
 @OptIn(KoinExperimentalAPI::class)
 val appModule = module {
-    // Это datastore (хранит настройки)
-    single { UserPreferencesRepository(dataStore = get()) }
-    // Это viewmodel (хранят данные экранов)
-    viewModel { SettingsViewModel(repository = get()) }
-    viewModel { CompetitionSelectionViewModel() }
-    viewModel { (competitionId: String) -> CompetitionMainScreenViewModel(competitionId) }
+  // Это datastore (хранит настройки)
+  single { UserPreferencesRepository(dataStore = get()) }
+  // Это viewmodel (хранят данные экранов)
+  viewModel { SettingsViewModel(repository = get()) }
+  viewModel { CompetitionSelectionViewModel() }
+  viewModel { (competitionId: String) -> CompetitionMainScreenViewModel(competitionId) }
 
-    navigation<SharedRoute.RoleSelection> {
-        RoleSelection()
-    }
+  navigation<SharedRoute.RoleSelection> {
+    RoleSelection()
+  }
 
-    navigation<SharedRoute.Settings> {
-        Settings()
-    }
+  navigation<SharedRoute.Settings> {
+    Settings()
+  }
 
-    navigation<StudentRoute.CompetitionSelection> {
-        CompetitionSelection()
-    }
+  navigation<StudentRoute.CompetitionSelection> {
+    CompetitionSelection()
+  }
 
-    navigation<StudentRoute.CompetitionMainScreen> { route ->
-        CompetitionMainScreen(competitionId = route.competitionId)
-    }
-
+  navigation<StudentRoute.CompetitionMainScreen> { route ->
+    CompetitionMainScreen(competitionId = route.competitionId)
+  }
 }
