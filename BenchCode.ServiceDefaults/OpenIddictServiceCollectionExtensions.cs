@@ -4,10 +4,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class OpenIddictServiceCollectionExtensions
 {
-    public static IServiceCollection AddOpenIddictTokenValidation(
-        this IServiceCollection services,
-        Uri issuer,
-        string audience)
+    public static IServiceCollection AddOpenIddictTokenValidation(this IServiceCollection services,
+                                                                  Uri issuer, string audience)
     {
         ArgumentNullException.ThrowIfNull(issuer);
         ArgumentException.ThrowIfNullOrWhiteSpace(audience);
@@ -18,19 +16,18 @@ public static class OpenIddictServiceCollectionExtensions
         }
 
         services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-            });
+        {
+            options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+        });
 
-        services.AddOpenIddict()
-            .AddValidation(options =>
-            {
-                options.SetIssuer(issuer);
-                options.AddAudiences(audience);
-                options.UseSystemNetHttp();
-                options.UseAspNetCore();
-            });
+        services.AddOpenIddict().AddValidation(options =>
+        {
+            options.SetIssuer(issuer);
+            options.AddAudiences(audience);
+            options.UseSystemNetHttp();
+            options.UseAspNetCore();
+        });
 
         services.AddAuthorization();
 

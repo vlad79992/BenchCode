@@ -4,5 +4,5 @@ enum class Language {
     Cpp,
     Python,
     Java,
-    CSharp
+    CSharp,
 }

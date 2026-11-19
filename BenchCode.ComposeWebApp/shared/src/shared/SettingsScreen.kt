@@ -31,17 +31,17 @@ fun Settings() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = "Кликов сохранено в DataStore: $counter",
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = { viewmodel.incrementCounter() },
-            modifier = Modifier.width(200.dp)
+            modifier = Modifier.width(200.dp),
         ) {
             Text("Сохранить клик")
         }

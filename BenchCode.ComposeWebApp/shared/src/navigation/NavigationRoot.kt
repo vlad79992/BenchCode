@@ -17,26 +17,29 @@ import org.koin.core.annotation.KoinExperimentalAPI
 @OptIn(ExperimentalSerializationApi::class, KoinExperimentalAPI::class)
 @Composable
 fun NavigationRoot() {
-    val backstack = rememberNavBackStack(
-        configuration = SavedStateConfiguration {
-            serializersModule = SerializersModule {
-                polymorphic(NavKey::class) {
-                    subclassesOfSealed<SharedRoute>()
-                    subclassesOfSealed<StudentRoute>()
-                }
-            }
-        },
-        SharedRoute.RoleSelection
-    )
+    val backstack =
+        rememberNavBackStack(
+            configuration =
+                SavedStateConfiguration {
+                    serializersModule = SerializersModule {
+                        polymorphic(NavKey::class) {
+                            subclassesOfSealed<SharedRoute>()
+                            subclassesOfSealed<StudentRoute>()
+                        }
+                    }
+                },
+            SharedRoute.RoleSelection,
+        )
 
     CompositionLocalProvider(LocalNavBackStack provides backstack) {
         NavDisplay(
             backStack = backstack,
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator()
-            ),
-            entryProvider = koinEntryProvider<NavKey>()
+            entryDecorators =
+                listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
+            entryProvider = koinEntryProvider<NavKey>(),
         )
     }
 }

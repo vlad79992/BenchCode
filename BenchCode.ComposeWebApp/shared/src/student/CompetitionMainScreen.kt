@@ -21,14 +21,15 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun CompetitionMainScreen(competitionId: String) {
-    val viewModel = koinViewModel<CompetitionMainScreenViewModel> {
-        parametersOf(competitionId)
-    }
+    val viewModel =
+        koinViewModel<CompetitionMainScreenViewModel> {
+            parametersOf(competitionId)
+        }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Card {
             Text(
@@ -36,7 +37,7 @@ fun CompetitionMainScreen(competitionId: String) {
                 fontSize = 48.sp,
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.W600,
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.padding(24.dp),
             )
         }
     }

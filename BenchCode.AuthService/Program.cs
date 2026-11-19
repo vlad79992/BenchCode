@@ -6,28 +6,23 @@ using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using System.Security.Cryptography.X509Certificates;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 var issuer = builder.Configuration["OpenIddict:Issuer"];
 
 // Add services to the container.
 
-if (string.IsNullOrWhiteSpace(issuer) || !Uri.TryCreate(issuer, UriKind.Absolute, out var issuerUri))
+if (string.IsNullOrWhiteSpace(issuer) || !Uri.TryCreate(issuer, UriKind.Absolute, out Uri? issuerUri))
 {
     throw new InvalidOperationException("OpenIddict:Issuer must be configured as an absolute URI.");
 }
 
-var signingCertificate = builder.Environment.IsDevelopment()
-    ? null
-    : LoadCertificate(builder.Configuration, "Signing");
-var encryptionCertificate = builder.Environment.IsDevelopment()
-    ? null
-    : LoadCertificate(builder.Configuration, "Encryption");
+X509Certificate2? signingCertificate =
+    builder.Environment.IsDevelopment() ? null : LoadCertificate(builder.Configuration, "Signing");
+X509Certificate2? encryptionCertificate =
+    builder.Environment.IsDevelopment() ? null : LoadCertificate(builder.Configuration, "Encryption");
 
 builder.AddNpgsqlDbContext<AuthDbContext>(connectionName: "authdb",
-    configureDbContextOptions: opt =>
-    {
-        opt.UseOpenIddict();
-    });
+                                          configureDbContextOptions: opt => { opt.UseOpenIddict(); });
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -39,7 +34,8 @@ builder.Services.AddAuthentication(opt =>
     opt.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
 });
 
-builder.Services.AddIdentityCore<User>(opt =>
+builder.Services
+    .AddIdentityCore<User>(opt =>
     {
         opt.User.RequireUniqueEmail = true;
         opt.Password.RequiredLength = 8;
@@ -51,18 +47,13 @@ builder.Services.AddIdentityCore<User>(opt =>
     .AddSignInManager<SignInManager<User>>();
 
 builder.Services.AddOpenIddict()
-    .AddCore(opt =>
-    {
-        opt.UseEntityFrameworkCore()
-            .UseDbContext<AuthDbContext>();
-    })
+    .AddCore(opt => { opt.UseEntityFrameworkCore().UseDbContext<AuthDbContext>(); })
     .AddServer(opt =>
     {
         opt.SetIssuer(issuerUri);
         opt.SetTokenEndpointUris("/connect/token");
 
-        opt.AllowPasswordFlow()
-            .AllowRefreshTokenFlow();
+        opt.AllowPasswordFlow().AllowRefreshTokenFlow();
 
         opt.RegisterScopes("benchcode-api");
         opt.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
@@ -70,19 +61,16 @@ builder.Services.AddOpenIddict()
 
         if (signingCertificate is null || encryptionCertificate is null)
         {
-            opt.AddDevelopmentEncryptionCertificate()
-                .AddDevelopmentSigningCertificate();
+            opt.AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate();
         }
         else
         {
-            opt.AddSigningCertificate(signingCertificate)
-                .AddEncryptionCertificate(encryptionCertificate);
+            opt.AddSigningCertificate(signingCertificate).AddEncryptionCertificate(encryptionCertificate);
         }
 
         opt.DisableAccessTokenEncryption();
 
-        opt.UseAspNetCore()
-            .EnableTokenEndpointPassthrough();
+        opt.UseAspNetCore().EnableTokenEndpointPassthrough();
     })
     .AddValidation(opt =>
     {
@@ -91,14 +79,15 @@ builder.Services.AddOpenIddict()
         opt.UseAspNetCore();
     });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
-await using (var scope = app.Services.CreateAsyncScope())
+await using (AsyncServiceScope scope = app.Services.CreateAsyncScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    AuthDbContext dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
     await dbContext.Database.EnsureCreatedAsync();
 
-    var applicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+    IOpenIddictApplicationManager applicationManager =
+        scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
     if (await applicationManager.FindByClientIdAsync("compose-web-app") is null)
     {
         await applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
@@ -106,14 +95,12 @@ await using (var scope = app.Services.CreateAsyncScope())
             ClientId = "compose-web-app",
             DisplayName = "Compose Web App",
             ClientType = OpenIddictConstants.ClientTypes.Public,
-            Permissions =
-            {
-                OpenIddictConstants.Permissions.Endpoints.Token,
-                OpenIddictConstants.Permissions.GrantTypes.Password,
-                OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
-                OpenIddictConstants.Permissions.Prefixes.Scope + "benchcode-api",
-                OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OfflineAccess
-            }
+            Permissions = { OpenIddictConstants.Permissions.Endpoints.Token,
+                            OpenIddictConstants.Permissions.GrantTypes.Password,
+                            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                            OpenIddictConstants.Permissions.Prefixes.Scope + "benchcode-api",
+                            OpenIddictConstants.Permissions.Prefixes.Scope +
+                                OpenIddictConstants.Scopes.OfflineAccess }
         });
     }
 }
@@ -135,7 +122,7 @@ app.Run();
 
 static X509Certificate2 LoadCertificate(IConfiguration configuration, string name)
 {
-    var section = configuration.GetSection($"OpenIddict:Certificates:{name}");
+    IConfigurationSection section = configuration.GetSection($"OpenIddict:Certificates:{name}");
     var path = section["Path"];
     var password = section["Password"];
 
@@ -148,6 +135,4 @@ static X509Certificate2 LoadCertificate(IConfiguration configuration, string nam
     return X509CertificateLoader.LoadPkcs12FromFile(path, password);
 }
 
-public partial class Program
-{
-}
+public partial class Program { }

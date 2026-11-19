@@ -6,5 +6,5 @@ class Task(
     val Id: Uuid,
     val Name: String,
     val Description: String,
-    val Languages: List<Language>
+    val Languages: List<Language>,
 )

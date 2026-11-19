@@ -26,18 +26,18 @@ fun CompetitionSelection() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         OutlinedTextField(
             state = viewModel.competitionId,
-            label = { Text("Код соревнования") }
+            label = { Text("Код соревнования") },
         )
         Button(
             onClick = {
                 val id = viewModel.competitionId.text.toString()
                 backstack.add(StudentRoute.CompetitionMainScreen(id))
             },
-            modifier = Modifier.width(200.dp)
+            modifier = Modifier.width(200.dp),
         ) {
             Text("Перейти")
         }

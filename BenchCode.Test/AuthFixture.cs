@@ -9,8 +9,7 @@ public sealed class AuthFixture : IAsyncLifetime
 {
     private const string ConnectionStringEnvironmentVariable = "ConnectionStrings__authdb";
 
-    private readonly PostgreSqlContainer dbContainer =
-        new PostgreSqlBuilder("postgres:16-alpine").Build();
+    private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder("postgres:16-alpine").Build();
 
     private string? previousConnectionString;
 
@@ -18,28 +17,23 @@ public sealed class AuthFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        previousConnectionString =
-            Environment.GetEnvironmentVariable(ConnectionStringEnvironmentVariable);
+        previousConnectionString = Environment.GetEnvironmentVariable(ConnectionStringEnvironmentVariable);
 
         await dbContainer.StartAsync();
 
-        Environment.SetEnvironmentVariable(
-            ConnectionStringEnvironmentVariable,
-            dbContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable(ConnectionStringEnvironmentVariable,
+                                           dbContainer.GetConnectionString());
 
-        Factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
+        Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+
+            builder.ConfigureAppConfiguration((_, config) =>
             {
-                builder.UseEnvironment("Development");
-
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["OpenIddict:Issuer"] = "https://localhost:5001/"
-                    });
-                });
+                config.AddInMemoryCollection(
+                    new Dictionary<string, string?> { ["OpenIddict:Issuer"] = "https://localhost:5001/" });
             });
+        });
     }
 
     public async Task DisposeAsync()
@@ -59,9 +53,8 @@ public sealed class AuthFixture : IAsyncLifetime
             }
             finally
             {
-                Environment.SetEnvironmentVariable(
-                    ConnectionStringEnvironmentVariable,
-                    previousConnectionString);
+                Environment.SetEnvironmentVariable(ConnectionStringEnvironmentVariable,
+                                                   previousConnectionString);
             }
         }
     }

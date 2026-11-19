@@ -39,5 +39,4 @@ val appModule = module {
     navigation<StudentRoute.CompetitionMainScreen> { route ->
         CompetitionMainScreen(competitionId = route.competitionId)
     }
-
 }

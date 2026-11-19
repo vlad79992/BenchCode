@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using System.Collections.Immutable;
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -12,7 +13,8 @@ namespace BenchCode.AuthService.Controllers;
 
 [ApiController]
 [Route("connect")]
-public class AuthorizationController(SignInManager<User> signInManager, UserManager<User> userManager) : ControllerBase
+public class AuthorizationController
+(SignInManager<User> signInManager, UserManager<User> userManager) : ControllerBase
 {
     private readonly SignInManager<User> signInManager = signInManager;
     private readonly UserManager<User> userManager = userManager;
@@ -22,8 +24,8 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
     [HttpPost("token")]
     public async Task<IActionResult> Exchange([FromForm] TokenRequest form)
     {
-        var request = HttpContext.GetOpenIddictServerRequest() ??
-            throw new InvalidOperationException("Запрос OpenIddict не может быть получен.");
+        OpenIddictRequest request = HttpContext.GetOpenIddictServerRequest() ??
+                      throw new InvalidOperationException("Запрос OpenIddict не может быть получен.");
 
         if (request.IsPasswordGrantType())
         {
@@ -32,19 +34,20 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
                 return InvalidGrant();
             }
 
-            var user = await userManager.FindByNameAsync(request.Username);
+            User? user = await userManager.FindByNameAsync(request.Username);
             if (user == null)
             {
                 return InvalidGrant();
             }
 
-            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            Microsoft.AspNetCore.Identity.SignInResult result =
+                await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
             if (!result.Succeeded)
             {
                 return InvalidGrant();
             }
 
-            var scopes = request.GetScopes();
+            ImmutableArray<string> scopes = request.GetScopes();
             if (!scopes.Contains("benchcode-api", StringComparer.Ordinal))
             {
                 return Forbid(
@@ -52,20 +55,21 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
                     properties: new AuthenticationProperties(new Dictionary<string, string?>
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Требуется scope benchcode-api."
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                            "Требуется scope benchcode-api."
                     }));
             }
 
             var identity = new ClaimsIdentity(
                 authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                nameType: Claims.Name,
-                roleType: Claims.Role);
+                nameType: Claims.Name, roleType: Claims.Role);
 
             identity.AddClaim(Claims.Subject, await userManager.GetUserIdAsync(user));
             identity.AddClaim(Claims.Name, await userManager.GetUserNameAsync(user) ?? "unknown");
 
             var principal = new ClaimsPrincipal(identity);
-            principal.SetDestinations(_ => [Destinations.AccessToken]);
+            principal.SetDestinations(
+                _ => [Destinations.AccessToken]);
             principal.SetScopes(scopes);
             principal.SetResources("benchcode-api");
 
@@ -74,11 +78,13 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
 
         if (request.IsRefreshTokenGrantType())
         {
-            var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            AuthenticateResult result =
+                await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             var subject = result.Principal?.GetClaim(Claims.Subject);
-            var user = subject is null ? null : await userManager.FindByIdAsync(subject);
+            User? user = subject is null ? null : await userManager.FindByIdAsync(subject);
 
-            if (!result.Succeeded || result.Principal is null || user is null || await userManager.IsLockedOutAsync(user))
+            if (!result.Succeeded || result.Principal is null || user is null ||
+                await userManager.IsLockedOutAsync(user))
             {
                 return InvalidGrant();
             }
@@ -94,13 +100,16 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
     }
 
     private ForbidResult InvalidGrant() =>
-        Forbid(
-            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-            properties: new AuthenticationProperties(new Dictionary<string, string?>
-            {
-                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Неверное имя пользователя или пароль."
-            }));
+        Forbid(authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+               properties: new AuthenticationProperties(
+                   new Dictionary<string, string?>
+                   {
+                       [OpenIddictServerAspNetCoreConstants.Properties.Error] =
+                                                         Errors.InvalidGrant,
+                       [OpenIddictServerAspNetCoreConstants.Properties
+                                                          .ErrorDescription] =
+                                                         "Неверное имя пользователя или пароль."
+                   }));
 
     public sealed class TokenRequest
     {
@@ -108,18 +117,33 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
         public string? GrantType { get; set; }
 
         [FromForm(Name = "client_id")]
-        public string? ClientId { get; set; }
+        public string? ClientId
+        {
+            get; set;
+        }
 
         [FromForm(Name = "username")]
-        public string? Username { get; set; }
+        public string? Username
+        {
+            get; set;
+        }
 
         [FromForm(Name = "password")]
-        public string? Password { get; set; }
+        public string? Password
+        {
+            get; set;
+        }
 
         [FromForm(Name = "refresh_token")]
-        public string? RefreshToken { get; set; }
+        public string? RefreshToken
+        {
+            get; set;
+        }
 
         [FromForm(Name = "scope")]
-        public string? Scope { get; set; }
+        public string? Scope
+        {
+            get; set;
+        }
     }
 }
