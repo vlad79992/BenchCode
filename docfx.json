@@ -13,7 +13,7 @@
           "src": "."
         }
       ],
-      "dest": "_dotnet-api"
+      "dest": ".api/dotnet"
     }
   ],
   "rules": {
@@ -29,6 +29,13 @@
         ],
         "src": "docs",
         "dest": "."
+      },
+      {
+        "files": [
+          "**/*.yml"
+        ],
+        "src": ".api/dotnet",
+        "dest": "dotnet-api"
       }
     ],
     "resource": [

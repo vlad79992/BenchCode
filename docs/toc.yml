@@ -2,3 +2,5 @@
   href: index.md
 - name: Kotlin API
   href: kotlin-api/index.html
+- name: .NET API
+  href: dotnet-api/
