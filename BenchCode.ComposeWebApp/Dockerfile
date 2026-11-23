@@ -8,7 +8,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY kotlin* ./
-RUN chmod +x ./kotlin
+RUN sed -i 's/\r$//' ./kotlin && chmod +x ./kotlin
 COPY project.yaml libs.versions.toml ./
 COPY shared/ ./shared/
 COPY webApp/ ./webApp/

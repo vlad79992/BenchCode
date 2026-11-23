@@ -1,4 +1,4 @@
-﻿<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,13 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BenchCode.ProgramRunnerService\BenchCode.ProgramRunnerService.csproj" />
-    <ProjectReference Include="..\BenchCode.Web\BenchCode.Web.csproj" />
-    <ProjectReference Include="..\BenchCode.AuthService\BenchCode.AuthService.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-	<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="*" />
-	<PackageReference Include="Scalar.Aspire" Version="1.0.1" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="17.0.0" />
+    <PackageReference Include="Aspire.Hosting.Dotnet" Version="17.0.0" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="*" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="*" />
+    <PackageReference Include="Scalar.Aspire" Version="1.0.1" />
   </ItemGroup>
 </Project>

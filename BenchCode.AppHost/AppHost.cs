@@ -36,25 +36,35 @@ var composeWasmBuild = builder.AddExecutable(
         composeWebAppDirectory
     ]);
 
-var postgres = builder
-    .AddPostgres("postgres")
-    .WithDataVolume();
+var postgres = builder.AddPostgres("postgres")
+                      .WithDataVolume();
 
-builder.AddProject<Projects.BenchCode_Web>("web")
+var rabbitmq = builder.AddRabbitMQ("rabbitmq");
+
+//builder.AddProject<Projects.BenchCode_Web>("web")
+builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
     .WaitForCompletion(composeWasmBuild);
 
 var authDb = postgres.AddDatabase("authdb");
-var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
+//var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
+var authService = builder.AddDotnetProject("auth", "../BenchCode.AuthService/BenchCode.AuthService.csproj")
     .WaitFor(authDb)
     .WithReference(authDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
 
 var competitionsDb = postgres.AddDatabase("competitionsdb");
-var competitionService = builder.AddProject<Projects.BenchCode_CompetitionService>("competition")
+var solutionsDb = postgres.AddDatabase("solutionsdb");
+
+var competitionService = builder.AddDotnetProject("competition", "../BenchCode.CompetitionService/BenchCode.CompetitionService.csproj")
     .WaitFor(competitionsDb)
     .WithReference(competitionsDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
-var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
+
+//var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
+var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")
+    .WaitFor(competitionsDb)
+    .WaitFor(solutionsDb)
+    .WithReference(solutionsDb);
 
 if (builder.Environment.IsDevelopment())
 {

@@ -1,7 +1,11 @@
+using BenchCode.ProgramRunnerService.Entities;
+using Docker.DotNet;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddSingleton<IDockerClient>(_ => new DockerClientBuilder().Build());
+builder.Services.AddSingleton<ProgramRunner>();
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
