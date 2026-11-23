@@ -2,7 +2,7 @@
 
 public enum Verdict 
 { 
-    OK  = 0,
+    AC  = 0,
     WA  = 1, // Wrong Answer
     TLE = 2, // Time Limit Exceeded
     MLE = 3, // Memory Limit Exceeded
@@ -29,5 +29,5 @@ public sealed record SubmissionResult(bool Built, string? BuildError, IReadOnlyL
 {
     public Verdict Final => !Built
         ? Verdict.CE
-        : Runs.FirstOrDefault(r => r.Verdict != Verdict.OK)?.Verdict ?? Verdict.OK;
+        : Runs.FirstOrDefault(r => r.Verdict != Verdict.AC)?.Verdict ?? Verdict.AC;
 }

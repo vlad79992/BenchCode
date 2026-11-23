@@ -120,7 +120,7 @@ public sealed class ProgramRunner(IDockerClient docker)
                 state.OOMKilled ? Verdict.MLE :
                 stdoutTruncated ? Verdict.OLE :
                 status != 0 ? Verdict.RE :
-                Tokens(actual) == Tokens(test.Expected) ? Verdict.OK : Verdict.WA;
+                Tokens(actual) == Tokens(test.Expected) ? Verdict.AC : Verdict.WA;
 
             return new RunOutcome(verdict, stdout, stderr, status, Elapsed(state));
         }
