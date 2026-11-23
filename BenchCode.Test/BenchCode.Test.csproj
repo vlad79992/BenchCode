@@ -20,6 +20,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\BenchCode.AuthService\BenchCode.AuthService.csproj" />
+        <ProjectReference Include="..\BenchCode.CompetitionService\BenchCode.CompetitionService.csproj" />
     </ItemGroup>
 
     <ItemGroup>

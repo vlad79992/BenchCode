@@ -7,9 +7,9 @@ var repositoryRoot = Path.GetFullPath(
 var composeWebAppDirectory = Path.Combine(repositoryRoot, "BenchCode.ComposeWebApp");
 var webRootDirectory = Path.Combine(repositoryRoot, "BenchCode.Web", "wwwroot");
 var composeWasmVariant = builder.Configuration["Compose:Variant"]
-    ?.Trim()
-    .ToLowerInvariant()
-    ?? (builder.Environment.IsDevelopment() ? "debug" : "release");
+                             ?.Trim()
+                             .ToLowerInvariant()
+                         ?? (builder.Environment.IsDevelopment() ? "debug" : "release");
 
 if (composeWasmVariant is not ("debug" or "release"))
 {
@@ -18,23 +18,23 @@ if (composeWasmVariant is not ("debug" or "release"))
 }
 
 var composeWasmBuild = builder.AddExecutable(
-        "compose-wasm-build",
-        "docker",
-        repositoryRoot,
-        [
-            "buildx",
-            "build",
-            "--progress=plain",
-            "--file",
-            Path.Combine(composeWebAppDirectory, "Dockerfile"),
-            "--target",
-            "frontend-export",
-            "--build-arg",
-            $"COMPOSE_WASM_VARIANT={composeWasmVariant}",
-            "--output",
-            $"type=local,dest={webRootDirectory}",
-            composeWebAppDirectory
-        ]);
+    "compose-wasm-build",
+    "docker",
+    repositoryRoot,
+    [
+        "buildx",
+        "build",
+        "--progress=plain",
+        "--file",
+        Path.Combine(composeWebAppDirectory, "Dockerfile"),
+        "--target",
+        "frontend-export",
+        "--build-arg",
+        $"COMPOSE_WASM_VARIANT={composeWasmVariant}",
+        "--output",
+        $"type=local,dest={webRootDirectory}",
+        composeWebAppDirectory
+    ]);
 
 var postgres = builder
     .AddPostgres("postgres")
@@ -46,9 +46,14 @@ builder.AddProject<Projects.BenchCode_Web>("web")
 var authDb = postgres.AddDatabase("authdb");
 var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
     .WaitFor(authDb)
-    .WithReference(authDb);
+    .WithReference(authDb)
+    .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
 
-//var competitionsDb = postgres.AddDatabase("competitionsdb");
+var competitionsDb = postgres.AddDatabase("competitionsdb");
+var competitionService = builder.AddProject<Projects.BenchCode_CompetitionService>("competition")
+    .WaitFor(competitionsDb)
+    .WithReference(competitionsDb)
+    .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
 var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
 
 if (builder.Environment.IsDevelopment())
@@ -60,7 +65,8 @@ if (builder.Environment.IsDevelopment())
     });
 
     scalar.WithApiReference(authService)
-          .WithApiReference(programRunnerService);
+        .WithApiReference(competitionService)
+        .WithApiReference(programRunnerService);
 }
 
 builder.Build().Run();

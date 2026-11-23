@@ -1,22 +1,23 @@
 ﻿<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net11.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AspireUseCliBundle>true</AspireUseCliBundle>
-    <UserSecretsId>e8764d46-8410-4e18-80ce-b7d187113a6a</UserSecretsId>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net11.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AspireUseCliBundle>true</AspireUseCliBundle>
+        <UserSecretsId>e8764d46-8410-4e18-80ce-b7d187113a6a</UserSecretsId>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BenchCode.ProgramRunnerService\BenchCode.ProgramRunnerService.csproj" />
-    <ProjectReference Include="..\BenchCode.Web\BenchCode.Web.csproj" />
-    <ProjectReference Include="..\BenchCode.AuthService\BenchCode.AuthService.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\BenchCode.ProgramRunnerService\BenchCode.ProgramRunnerService.csproj"/>
+        <ProjectReference Include="..\BenchCode.Web\BenchCode.Web.csproj"/>
+        <ProjectReference Include="..\BenchCode.AuthService\BenchCode.AuthService.csproj"/>
+        <ProjectReference Include="..\BenchCode.CompetitionService\BenchCode.CompetitionService.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-	<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="*" />
-	<PackageReference Include="Scalar.Aspire" Version="1.0.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="*"/>
+        <PackageReference Include="Scalar.Aspire" Version="1.0.1"/>
+    </ItemGroup>
 </Project>
