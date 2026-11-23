@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -18,9 +17,9 @@ namespace BenchCode.CompetitionService.Controllers;
 [Route("api")]
 public class CompetitionsController(CompetitionDbContext db) : ControllerBase
 {
-    private static readonly ConcurrentDictionary<string, ConcurrentQueue<DateTimeOffset>> JoinAttempts = new();
-    private static readonly ConcurrentDictionary<string, ConcurrentQueue<DateTimeOffset>> SubmissionAttempts = new();
-    private static readonly char[] CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray();
+    private static readonly ConcurrentDictionary<string, ConcurrentQueue<DateTimeOffset>> joinAttempts = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentQueue<DateTimeOffset>> submissionAttempts = new();
+    private static readonly char[] codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray();
 
     [Authorize]
     [HttpGet("me/competitions")]
@@ -113,7 +112,7 @@ public class CompetitionsController(CompetitionDbContext db) : ControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        if (!IsWithinQuota(userId, JoinAttempts, 10))
+        if (!IsWithinQuota(userId, joinAttempts, 10))
             return StatusCode(StatusCodes.Status429TooManyRequests,
                 new { message = "Слишком много попыток. Повторите через минуту" });
 
@@ -493,7 +492,7 @@ public class CompetitionsController(CompetitionDbContext db) : ControllerBase
         if (userId is null) return Unauthorized();
         if (await GetParticipationAsync(id, userId, cancellationToken) is null)
             return StatusCode(403, new { message = "Доступ запрещён" });
-        if (!IsWithinQuota(userId, SubmissionAttempts, 6))
+        if (!IsWithinQuota(userId, submissionAttempts, 6))
             return StatusCode(429, new { message = "Слишком много посылок. Повторите через минуту" });
 
         if (request.Code is null || request.Code.Length == 0)
@@ -533,7 +532,7 @@ public class CompetitionsController(CompetitionDbContext db) : ControllerBase
         var userId = GetUserId();
         if (await GetParticipationAsync(id, userId, cancellationToken) is null)
             return StatusCode(403, new { message = "Доступ запрещён" });
-        if (!IsWithinQuota(userId!, SubmissionAttempts, 6))
+        if (!IsWithinQuota(userId!, submissionAttempts, 6))
             return StatusCode(429, new { message = "Слишком много посылок. Повторите через минуту" });
         var task = await db.Tasks.Include(item => item.Tests)
             .FirstOrDefaultAsync(item => item.Id == taskId &&
@@ -765,7 +764,7 @@ public class CompetitionsController(CompetitionDbContext db) : ControllerBase
         {
             var bytes = new byte[6];
             System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
-            var code = new string(bytes.Select(value => CodeAlphabet[value % CodeAlphabet.Length]).ToArray());
+            var code = new string(bytes.Select(value => codeAlphabet[value % codeAlphabet.Length]).ToArray());
             if (!await db.Competitions.AnyAsync(item => item.Id == code, cancellationToken))
                 return code;
         }
