@@ -1,16 +1,16 @@
+using BenchCode.CompetitionService.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using BenchCode.CompetitionService.Entities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OpenIddict.Abstractions;
-using SubmissionEntity = BenchCode.CompetitionService.Entities.Submission;
 using CompetitionTask = BenchCode.CompetitionService.Entities.CompetitionTask;
+using SubmissionEntity = BenchCode.CompetitionService.Entities.Submission;
 
 namespace BenchCode.CompetitionService.Controllers;
 
