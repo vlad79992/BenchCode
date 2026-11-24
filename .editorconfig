@@ -222,6 +222,10 @@ dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = warning
 dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
 dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
 
+dotnet_naming_rule.private_constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_constants_should_be_pascal_case.symbols = private_constants
+dotnet_naming_rule.private_constants_should_be_pascal_case.style = pascal_case
+
 dotnet_naming_rule.private_no_underscore.severity = warning
 dotnet_naming_rule.private_no_underscore.symbols = private_fields
 dotnet_naming_rule.private_no_underscore.style = private_no_underscore

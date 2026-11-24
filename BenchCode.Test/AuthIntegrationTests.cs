@@ -110,7 +110,7 @@ public sealed class AuthIntegrationTests
     {
         using var client = CreateClient();
 
-        using var response = await client.GetAsync("/api/users/me");
+        using var response = await client.GetAsync("/users/me");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -165,7 +165,7 @@ public sealed class AuthIntegrationTests
         Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
 
         var accessToken = await GetAccessTokenAsync(client, user);
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/users/me");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/users/me");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         using var response = await client.SendAsync(request);
@@ -191,7 +191,7 @@ public sealed class AuthIntegrationTests
 
     private static Task<HttpResponseMessage> RegisterAsync(HttpClient client, TestUser user) =>
         client.PostAsJsonAsync(
-            "/api/users/register",
+            "/users/register",
             new { userName = user.UserName, email = user.Email, password = user.Password });
 
     private static Task<HttpResponseMessage> RequestTokenAsync(
@@ -199,7 +199,7 @@ public sealed class AuthIntegrationTests
         TestUser user,
         string password) =>
         client.PostAsync(
-            "/connect/token",
+            "/authorization/token",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["grant_type"] = "password",

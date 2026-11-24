@@ -1,6 +1,6 @@
 @BenchCode.AuthService_HostAddress = https://localhost:7231
 
-POST {{BenchCode.AuthService_HostAddress}}/api/users
+POST {{BenchCode.AuthService_HostAddress}}/users/register
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 
 ###
 
-POST {{BenchCode.AuthService_HostAddress}}/connect/token
+POST {{BenchCode.AuthService_HostAddress}}/authorization/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=password&client_id=compose-web-app&username=alice&password=Replace-Me-123!&scope=benchcode-api%20offline_access
@@ -20,7 +20,7 @@ grant_type=password&client_id=compose-web-app&username=alice&password=Replace-Me
 
 @access_token = paste-access-token-here
 
-GET {{BenchCode.AuthService_HostAddress}}/api/users/me
+GET {{BenchCode.AuthService_HostAddress}}/users/me
 Authorization: Bearer {{access_token}}
 Accept: application/json
 
@@ -28,7 +28,7 @@ Accept: application/json
 
 @refresh_token = paste-refresh-token-here
 
-POST {{BenchCode.AuthService_HostAddress}}/connect/token
+POST {{BenchCode.AuthService_HostAddress}}/authorization/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=refresh_token&client_id=compose-web-app&refresh_token={{refresh_token}}

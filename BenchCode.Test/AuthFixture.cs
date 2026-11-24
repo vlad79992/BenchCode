@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
@@ -13,6 +12,7 @@ public sealed class AuthFixture : IAsyncLifetime
     private const string ConnectionStringEnvironmentVariable = "ConnectionStrings__authdb";
     private const string CompetitionConnectionStringEnvironmentVariable =
         "ConnectionStrings__competitionsdb";
+    private const string IssuerEnvironmentVariable = "OpenIddict__Issuer";
 
     private readonly PostgreSqlContainer dbContainer =
         new PostgreSqlBuilder("postgres:16-alpine").Build();
@@ -21,6 +21,7 @@ public sealed class AuthFixture : IAsyncLifetime
 
     private string? previousConnectionString;
     private string? previousCompetitionConnectionString;
+    private string? previousIssuer;
 
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
     public WebApplicationFactory<BenchCode.CompetitionService.Program> CompetitionFactory { get; private set; } =
@@ -32,6 +33,9 @@ public sealed class AuthFixture : IAsyncLifetime
             Environment.GetEnvironmentVariable(ConnectionStringEnvironmentVariable);
         previousCompetitionConnectionString =
             Environment.GetEnvironmentVariable(CompetitionConnectionStringEnvironmentVariable);
+        previousIssuer = Environment.GetEnvironmentVariable(IssuerEnvironmentVariable);
+
+        Environment.SetEnvironmentVariable(IssuerEnvironmentVariable, "https://localhost:5001/");
 
         await dbContainer.StartAsync();
         await competitionDbContainer.StartAsync();
@@ -47,27 +51,12 @@ public sealed class AuthFixture : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");
-
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["OpenIddict:Issuer"] = "https://localhost:5001/"
-                    });
-                });
             });
 
         CompetitionFactory = new WebApplicationFactory<BenchCode.CompetitionService.Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["OpenIddict:Issuer"] = "https://localhost:5001/"
-                    });
-                });
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddAuthentication(options =>
@@ -115,6 +104,7 @@ public sealed class AuthFixture : IAsyncLifetime
                         Environment.SetEnvironmentVariable(
                             CompetitionConnectionStringEnvironmentVariable,
                             previousCompetitionConnectionString);
+                        Environment.SetEnvironmentVariable(IssuerEnvironmentVariable, previousIssuer);
                     }
                 }
             }

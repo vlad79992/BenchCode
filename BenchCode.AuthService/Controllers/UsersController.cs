@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace BenchCode.AuthService.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[Route("users")]
 public class UsersController(UserManager<User> userManager) : ControllerBase
 {
     [AllowAnonymous]

@@ -3,7 +3,7 @@
 **/bin
 **/obj
 TestResults
-BenchCode.Web/wwwroot
+BenchCode.Gateway/wwwroot
 .dokka
 .api
 _site

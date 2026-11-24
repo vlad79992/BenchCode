@@ -5,7 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var repositoryRoot = Path.GetFullPath(
     Path.Combine(builder.Environment.ContentRootPath, ".."));
 var composeWebAppDirectory = Path.Combine(repositoryRoot, "BenchCode.ComposeWebApp");
-var webRootDirectory = Path.Combine(repositoryRoot, "BenchCode.Web", "wwwroot");
+var webRootDirectory = Path.Combine(repositoryRoot, "BenchCode.Gateway", "wwwroot");
 var composeWasmVariant = builder.Configuration["Compose:Variant"]
                              ?.Trim()
                              .ToLowerInvariant()
@@ -41,16 +41,13 @@ var postgres = builder.AddPostgres("postgres")
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq");
 
-//builder.AddProject<Projects.BenchCode_Web>("web")
-builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
-    .WaitForCompletion(composeWasmBuild);
-
 var authDb = postgres.AddDatabase("authdb");
-//var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
 var authService = builder.AddDotnetProject("auth", "../BenchCode.AuthService/BenchCode.AuthService.csproj")
     .WaitFor(authDb)
     .WithReference(authDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
+var authIssuer = authService.GetEndpoint("https");
+authService.WithEnvironment("OpenIddict__Issuer", authIssuer);
 
 var competitionsDb = postgres.AddDatabase("competitionsdb");
 var solutionsDb = postgres.AddDatabase("solutionsdb");
@@ -59,12 +56,16 @@ var competitionService = builder.AddDotnetProject("competition", "../BenchCode.C
     .WaitFor(competitionsDb)
     .WithReference(competitionsDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
+competitionService.WithEnvironment("OpenIddict__Issuer", authIssuer);
 
-//var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
 var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")
     .WaitFor(competitionsDb)
     .WaitFor(solutionsDb)
     .WithReference(solutionsDb);
+
+var gateway = builder.AddDotnetProject("gateway", "../BenchCode.Gateway/BenchCode.Gateway.csproj")
+    .WithReference(authService)
+    .WaitForCompletion(composeWasmBuild);
 
 if (builder.Environment.IsDevelopment())
 {

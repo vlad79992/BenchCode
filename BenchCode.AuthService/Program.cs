@@ -59,7 +59,7 @@ builder.Services.AddOpenIddict()
     .AddServer(opt =>
     {
         opt.SetIssuer(issuerUri);
-        opt.SetTokenEndpointUris("/connect/token");
+        opt.SetTokenEndpointUris("/authorization/token");
 
         opt.AllowPasswordFlow()
             .AllowRefreshTokenFlow();
@@ -146,8 +146,4 @@ static X509Certificate2 LoadCertificate(IConfiguration configuration, string nam
     }
 
     return X509CertificateLoader.LoadPkcs12FromFile(path, password);
-}
-
-public partial class Program
-{
 }

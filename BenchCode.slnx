@@ -1,9 +1,9 @@
 <Solution>
   <Project Path="BenchCode.AppHost/BenchCode.AppHost.csproj" />
   <Project Path="BenchCode.AuthService/BenchCode.AuthService.csproj" Id="16494907-846c-4cd4-96e9-030b841db872" />
+  <Project Path="BenchCode.CompetitionService/BenchCode.CompetitionService.csproj" />
+  <Project Path="BenchCode.Gateway/BenchCode.Gateway.csproj" Id="39bcf355-02d7-4ae7-9089-47c6da2b4c0f" />
   <Project Path="BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj" Id="e3c2290f-11d9-41c4-825b-f302097467ab" />
   <Project Path="BenchCode.ServiceDefaults/BenchCode.ServiceDefaults.csproj" />
-  <Project Path="BenchCode.CompetitionService/BenchCode.CompetitionService.csproj" />
   <Project Path="BenchCode.Test/BenchCode.Test.csproj" />
-  <Project Path="BenchCode.Web/BenchCode.Web.csproj" />
 </Solution>
