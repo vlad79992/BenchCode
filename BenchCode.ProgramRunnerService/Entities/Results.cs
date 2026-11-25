@@ -1,7 +1,7 @@
 ﻿namespace BenchCode.ProgramRunnerService.Entities;
 
-public enum Verdict 
-{ 
+public enum Verdict
+{
     AC  = 0,
     WA  = 1, // Wrong Answer
     TLE = 2, // Time Limit Exceeded
@@ -23,7 +23,11 @@ public sealed record BuildOutcome(Artifact? Artifact, string? Error)
 }
 
 public sealed record RunOutcome(
-    Verdict Verdict, string Stdout, string Stderr, long ExitCode, TimeSpan Time);
+    Verdict Verdict,
+    string Stdout,
+    string Stderr,
+    long ExitCode,
+    TimeSpan Time);
 
 public sealed record SubmissionResult(bool Built, string? BuildError, IReadOnlyList<RunOutcome> Runs)
 {

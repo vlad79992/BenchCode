@@ -16,6 +16,8 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
         LanguageProfile? profile = request.Language.Trim().ToLowerInvariant() switch
         {
             "cpp" => new CppProfile(),
+            "java" => new JavaProfile(),
+            "csharp" => new CSharpProfile(),
             _ => null,
         };
 
@@ -30,14 +32,36 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
             return Ok(new SubmissionResult(false, build.Error, []));
 
         var artifact = build.Artifact!;
+
         var runs = new List<RunOutcome>(request.Tests.Count);
+
         foreach (var test in request.Tests)
         {
-            runs.Add(await programRunner.RunAsync(
-                profile,
-                artifact,
-                new TestCase(test!.Input!, test.Expected!),
-                cancellationToken));
+            var outcome = await programRunner.RunAsync(profile,
+                                                       artifact,
+                                                       new TestCase(test!.Input!, test.Expected!),
+                                                       cancellationToken);
+            if (outcome.Verdict != Verdict.AC)
+            {
+                runs.Add(outcome);
+                break;
+            }
+            var (totalTicks, totalRuns) = (outcome.Time.Ticks, 1);
+            for (var i = 0; i < request.RunsPerTest - 1; i++)
+            {
+                var tempOutcome = await programRunner.RunAsync(profile,
+                                                               artifact,
+                                                               new TestCase(test!.Input!, test.Expected!),
+                                                               cancellationToken);
+                (totalTicks, totalRuns) = (totalTicks + tempOutcome.Time.Ticks, totalRuns + 1);
+
+                if (tempOutcome.Verdict != Verdict.AC)
+                {
+                    outcome = tempOutcome;
+                    break;
+                }
+            }
+            runs.Add(outcome with { Time = TimeSpan.FromTicks(totalTicks / totalRuns)});
         }
 
         return Ok(new SubmissionResult(true, null, runs));
@@ -51,6 +75,9 @@ public sealed record RunnerRequest
 
     [Required]
     public string Code { get; init; } = string.Empty;
+
+    [Range(1, 5)]
+    public int RunsPerTest { get; init; } = 1;
 
     [Required, MinLength(1)]
     public List<RunnerTestRequest?> Tests { get; init; } = [];
