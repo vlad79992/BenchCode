@@ -16,6 +16,8 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
         LanguageProfile? profile = request.Language.Trim().ToLowerInvariant() switch
         {
             "cpp" => new CppProfile(),
+            "java" => new JavaProfile(),
+            "csharp" => new CSharpProfile(),
             _ => null,
         };
 

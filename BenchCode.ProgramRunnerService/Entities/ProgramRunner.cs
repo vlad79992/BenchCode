@@ -51,6 +51,8 @@ public sealed class ProgramRunner(IDockerClient docker)
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(code);
 
+        await EnsureImagesAsync(profile, ct);
+
         var id = (await docker.Containers.CreateContainerAsync(profile.BuildCompilerContainer(), ct)).ID;
         try
         {
