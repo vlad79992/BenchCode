@@ -41,10 +41,6 @@ var postgres = builder.AddPostgres("postgres")
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq");
 
-//builder.AddProject<Projects.BenchCode_Web>("web")
-builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
-    .WaitForCompletion(composeWasmBuild);
-
 var authDb = postgres.AddDatabase("authdb");
 //var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
 var authService = builder.AddDotnetProject("auth", "../BenchCode.AuthService/BenchCode.AuthService.csproj")
@@ -59,6 +55,13 @@ var competitionService = builder.AddDotnetProject("competition", "../BenchCode.C
     .WaitFor(competitionsDb)
     .WithReference(competitionsDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
+
+builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
+    .WithReference(authService)
+    .WithReference(competitionService)
+    .WaitFor(authService)
+    .WaitFor(competitionService)
+    .WaitForCompletion(composeWasmBuild);
 
 //var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
 var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")

@@ -36,6 +36,34 @@ public sealed class AuthIntegrationTests
     }
 
     [Fact]
+    public async Task Register_WithProfileAndEmail_AllowsEmailSignIn()
+    {
+        using var client = CreateClient();
+        var user = CreateUser();
+        using var registration = await client.PostAsJsonAsync("/api/users/register", new
+        {
+            user.Email,
+            user.Password,
+            firstName = "Иван",
+            lastName = "Иванов"
+        });
+        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
+
+        using var scope = fixture.Factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var storedUser = await userManager.FindByEmailAsync(user.Email);
+        Assert.NotNull(storedUser);
+        var claims = await userManager.GetClaimsAsync(storedUser);
+        Assert.Contains(claims, claim => claim.Type == "given_name" && claim.Value == "Иван");
+        Assert.Contains(claims, claim => claim.Type == "family_name" && claim.Value == "Иванов");
+
+        using var response = await RequestTokenAsync(client, user, user.Password, byEmail: true);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.False(string.IsNullOrWhiteSpace(body.RootElement.GetProperty("access_token").GetString()));
+    }
+
+    [Fact]
     public async Task Register_WithDuplicateEmail_ReturnsConflict()
     {
         using var client = CreateClient();
@@ -197,14 +225,16 @@ public sealed class AuthIntegrationTests
     private static Task<HttpResponseMessage> RequestTokenAsync(
         HttpClient client,
         TestUser user,
-        string password) =>
+        string password,
+        bool byEmail = false) =>
         client.PostAsync(
             "/connect/token",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["grant_type"] = "password",
                 ["client_id"] = "compose-web-app",
-                ["username"] = user.UserName,
+                ["username"] = byEmail ? user.Email : user.UserName,
+                ["login_by_email"] = byEmail ? "true" : "false",
                 ["password"] = password,
                 ["scope"] = "benchcode-api"
             }));

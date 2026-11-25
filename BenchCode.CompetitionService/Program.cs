@@ -22,7 +22,7 @@ public partial class Program
         builder.Services.AddOpenIddict()
             .AddValidation(options =>
             {
-                options.UseLocalServer();
+                options.UseSystemNetHttp();
                 var issuer = builder.Configuration["OpenIddict:Issuer"];
                 if (!string.IsNullOrWhiteSpace(issuer))
                     options.SetIssuer(issuer);
