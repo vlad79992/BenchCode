@@ -5,7 +5,10 @@
 TestResults
 BenchCode.Web/wwwroot
 .dokka
+.api
 _site
-_dotnet-api
 BenchCode.ComposeWebApp/dokka/target/
 CoverageReport
+**.sln.DotSettings.user
+**.csproj.user
+.DS_STORE

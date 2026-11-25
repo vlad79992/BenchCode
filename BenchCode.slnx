@@ -3,6 +3,7 @@
   <Project Path="BenchCode.AuthService/BenchCode.AuthService.csproj" Id="16494907-846c-4cd4-96e9-030b841db872" />
   <Project Path="BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj" Id="e3c2290f-11d9-41c4-825b-f302097467ab" />
   <Project Path="BenchCode.ServiceDefaults/BenchCode.ServiceDefaults.csproj" />
+  <Project Path="BenchCode.CompetitionService/BenchCode.CompetitionService.csproj" />
   <Project Path="BenchCode.Test/BenchCode.Test.csproj" />
   <Project Path="BenchCode.Web/BenchCode.Web.csproj" />
 </Solution>
