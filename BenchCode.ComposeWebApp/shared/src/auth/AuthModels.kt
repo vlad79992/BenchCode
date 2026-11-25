@@ -1,36 +1,14 @@
-package ru.benchcode.auth
+package org.codebench.composewebapp.auth
 
-enum class RegistrationRole {
-    STUDENT,
-    TEACHER
-}
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-data class RegisterRequest(
+@Serializable
+internal data class RegisterRequest(
     val firstName: String,
     val lastName: String,
-    val role: RegistrationRole,
-    val studyGroup: String?,
     val email: String,
-    val username: String,
-    val password: String
+    val password: String,
 )
 
-data class LoginRequest(
-    val email: String,
-    val password: String
-)
-
-data class AuthSession(
-    val accessToken: String,
-    val refreshToken: String? = null
-)
-
-interface AuthRepository {
-    suspend fun register(request: RegisterRequest): AuthSession
-    suspend fun login(request: LoginRequest): AuthSession
-}
-
-class AuthApiException(
-    val fieldErrors: Map<String, String> = emptyMap(),
-    override val message: String = "Не удалось выполнить запрос. Попробуйте ещё раз."
-) : Exception(message)
+@Serializable internal data class AuthSession(@SerialName("access_token") val accessToken: String)

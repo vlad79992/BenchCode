@@ -32,7 +32,9 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
                 return InvalidGrant();
             }
 
-            var user = await userManager.FindByNameAsync(request.Username);
+            var user = form.LoginByEmail
+                ? await userManager.FindByEmailAsync(request.Username)
+                : await userManager.FindByNameAsync(request.Username);
             if (user == null)
             {
                 return InvalidGrant();
@@ -112,6 +114,9 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
 
         [FromForm(Name = "username")]
         public string? Username { get; set; }
+
+        [FromForm(Name = "login_by_email")]
+        public bool LoginByEmail { get; set; }
 
         [FromForm(Name = "password")]
         public string? Password { get; set; }

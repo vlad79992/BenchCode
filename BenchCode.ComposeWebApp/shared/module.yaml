@@ -21,8 +21,14 @@ dependencies:
   - $libs.koin.compose.navigation3
   - $libs.datastore.core
   - $libs.datastore.preferences.core
+  - $libs.ktor.client.core
+  - $libs.kotlinx.serialization.json
+
+dependencies@jvm:
+  - $libs.ktor.client.cio
 
 dependencies@android:
+  - $libs.ktor.client.cio
   - $compose.uiTooling
 
 dependencies@web:

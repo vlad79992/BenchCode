@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="BenchCube">
+<path id="Vector" d="M22 2L41 13L22 24L3 13L22 2Z" fill="#D9D7FF"/>
+<path id="Vector_2" d="M3 13L22 24V43L3 32V13Z" fill="#5046C8"/>
+<path id="Vector_3" d="M22 24L41 13V32L22 43V24Z" fill="#FFBE85"/>
+<path id="Vector_4" d="M12.5 7.5L31.5 18.5V37.5M31.5 7.5L12.5 18.5V37.5M3 22.5L22 33.5L41 22.5" stroke-width="1.7" stroke-linejoin="round" stroke="white"/>
+</g>
+</svg>
