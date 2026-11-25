@@ -125,7 +125,7 @@ public sealed class ProgramRunner(IDockerClient docker)
                 Tokens(actual) == Tokens(test.Expected) ? Verdict.AC : Verdict.WA;
 
             var elapsed = Elapsed(state);
-            return new RunOutcome(verdict, stdout, stderr, status, elapsed, [elapsed]);
+            return new RunOutcome(verdict, stdout, stderr, status, elapsed);
         }
         finally { await RemoveAsync(id); }
     }

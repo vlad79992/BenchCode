@@ -32,20 +32,36 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
             return Ok(new SubmissionResult(false, build.Error, []));
 
         var artifact = build.Artifact!;
+
         var runs = new List<RunOutcome>(request.Tests.Count);
+
         foreach (var test in request.Tests)
         {
-            var executions = new List<RunOutcome>(request.RunsPerTest);
-            for (var i = 0; i < request.RunsPerTest; i++)
+            var outcome = await programRunner.RunAsync(profile,
+                                                       artifact,
+                                                       new TestCase(test!.Input!, test.Expected!),
+                                                       cancellationToken);
+            if (outcome.Verdict != Verdict.AC)
             {
-                executions.Add(await programRunner.RunAsync(
-                    profile,
-                    artifact,
-                    new TestCase(test!.Input!, test.Expected!),
-                    cancellationToken));
+                runs.Add(outcome);
+                break;
             }
+            var (totalTicks, totalRuns) = (outcome.Time.Ticks, 1);
+            for (var i = 0; i < request.RunsPerTest - 1; i++)
+            {
+                var tempOutcome = await programRunner.RunAsync(profile,
+                                                               artifact,
+                                                               new TestCase(test!.Input!, test.Expected!),
+                                                               cancellationToken);
+                (totalTicks, totalRuns) = (totalTicks + tempOutcome.Time.Ticks, totalRuns + 1);
 
-            runs.Add(RunOutcome.Aggregate(executions));
+                if (tempOutcome.Verdict != Verdict.AC)
+                {
+                    outcome = tempOutcome;
+                    break;
+                }
+            }
+            runs.Add(outcome with { Time = TimeSpan.FromTicks(totalTicks / totalRuns)});
         }
 
         return Ok(new SubmissionResult(true, null, runs));

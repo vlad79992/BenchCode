@@ -49,3 +49,23 @@ docker pull n0madic/alpine-gcc:14.3.0
 ```bash
 docker pull busybox:1.38.0-glibc
 ```
+
+### Java
+```bash
+docker pull eclipse-temurin:21-jdk-alpine
+```
+### Контейнер для запуска
+
+```bash
+docker pull eclipse-temurin:21-jre-alpine
+```
+
+### C#
+```bash
+docker pull mcr.microsoft.com/dotnet/sdk:11.0-alpine
+```
+### Контейнер для запуска
+
+```bash
+docker pull mcr.microsoft.com/dotnet/runtime:11.0-alpine
+```

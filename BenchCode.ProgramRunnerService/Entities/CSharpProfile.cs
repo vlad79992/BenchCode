@@ -7,21 +7,13 @@ public class CSharpProfile : LanguageProfile
     public override string ArtifactPath => "/workspace/artifact.tar";
 
     protected override LanguageProfile.StageOptions BuildOptions => new(
-        Image: "mcr.microsoft.com/dotnet/sdk:11.0",
+        Image: "mcr.microsoft.com/dotnet/sdk:11.0-alpine",
         Cmd: [
             "sh",
             "-c",
-            "cat << 'EOF' > App.csproj\n" +
-            "<Project Sdk=\"Microsoft.NET.Sdk\">\n" +
-            "  <PropertyGroup>\n" +
-            "    <OutputType>Exe</OutputType>\n" +
-            "    <TargetFramework>net11.0</TargetFramework>\n" +
-            "    <ImplicitUsings>enable</ImplicitUsings>\n" +
-            "    <Nullable>enable</Nullable>\n" +
-            "  </PropertyGroup>\n" +
-            "</Project>\n" +
-            "EOF\n" +
-            "dotnet publish App.csproj -c Release -o out --nologo && " +
+            "dotnet new console --name App --output app --framework net11.0 --no-restore && " +
+            "cp Program.cs app/Program.cs && " +
+            "dotnet publish app/App.csproj -c Release -o out --nologo && " +
             "tar -cf artifact.tar -C out ."
         ],
         Limits: new(
@@ -34,7 +26,7 @@ public class CSharpProfile : LanguageProfile
     );
 
     protected override LanguageProfile.StageOptions RunOptions => new(
-        Image: "mcr.microsoft.com/dotnet/runtime:11.0",
+        Image: "mcr.microsoft.com/dotnet/runtime:11.0-alpine",
         Cmd: ["sh", "-c", "tar -xf artifact.tar -C /workspace && exec dotnet App.dll < input.txt"],
         Limits: new(
             512L << 20,

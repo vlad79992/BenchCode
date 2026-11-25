@@ -1,7 +1,7 @@
 ﻿namespace BenchCode.ProgramRunnerService.Entities;
 
-public enum Verdict 
-{ 
+public enum Verdict
+{
     AC  = 0,
     WA  = 1, // Wrong Answer
     TLE = 2, // Time Limit Exceeded
@@ -27,32 +27,7 @@ public sealed record RunOutcome(
     string Stdout,
     string Stderr,
     long ExitCode,
-    TimeSpan Time,
-    IReadOnlyList<TimeSpan> RunTimes)
-{
-    public static RunOutcome Aggregate(IReadOnlyCollection<RunOutcome> executions)
-    {
-        ArgumentNullException.ThrowIfNull(executions);
-        if (executions.Count == 0)
-            throw new ArgumentException("At least one execution is required.", nameof(executions));
-
-        var runs = executions.ToArray();
-        var orderedTimes = runs.Select(run => run.Time).OrderBy(time => time).ToArray();
-        var middle = orderedTimes.Length / 2;
-        var median = orderedTimes.Length % 2 == 1
-            ? orderedTimes[middle]
-            : TimeSpan.FromTicks(
-                orderedTimes[middle - 1].Ticks +
-                (orderedTimes[middle].Ticks - orderedTimes[middle - 1].Ticks) / 2);
-
-        var representative = runs.FirstOrDefault(run => run.Verdict != Verdict.AC) ?? runs[0];
-        return representative with
-        {
-            Time = median,
-            RunTimes = runs.Select(run => run.Time).ToArray(),
-        };
-    }
-}
+    TimeSpan Time);
 
 public sealed record SubmissionResult(bool Built, string? BuildError, IReadOnlyList<RunOutcome> Runs)
 {
