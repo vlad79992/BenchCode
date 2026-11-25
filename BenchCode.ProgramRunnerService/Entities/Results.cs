@@ -23,7 +23,36 @@ public sealed record BuildOutcome(Artifact? Artifact, string? Error)
 }
 
 public sealed record RunOutcome(
-    Verdict Verdict, string Stdout, string Stderr, long ExitCode, TimeSpan Time);
+    Verdict Verdict,
+    string Stdout,
+    string Stderr,
+    long ExitCode,
+    TimeSpan Time,
+    IReadOnlyList<TimeSpan> RunTimes)
+{
+    public static RunOutcome Aggregate(IReadOnlyCollection<RunOutcome> executions)
+    {
+        ArgumentNullException.ThrowIfNull(executions);
+        if (executions.Count == 0)
+            throw new ArgumentException("At least one execution is required.", nameof(executions));
+
+        var runs = executions.ToArray();
+        var orderedTimes = runs.Select(run => run.Time).OrderBy(time => time).ToArray();
+        var middle = orderedTimes.Length / 2;
+        var median = orderedTimes.Length % 2 == 1
+            ? orderedTimes[middle]
+            : TimeSpan.FromTicks(
+                orderedTimes[middle - 1].Ticks +
+                (orderedTimes[middle].Ticks - orderedTimes[middle - 1].Ticks) / 2);
+
+        var representative = runs.FirstOrDefault(run => run.Verdict != Verdict.AC) ?? runs[0];
+        return representative with
+        {
+            Time = median,
+            RunTimes = runs.Select(run => run.Time).ToArray(),
+        };
+    }
+}
 
 public sealed record SubmissionResult(bool Built, string? BuildError, IReadOnlyList<RunOutcome> Runs)
 {

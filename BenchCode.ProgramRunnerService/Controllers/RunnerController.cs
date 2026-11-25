@@ -35,11 +35,17 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
         var runs = new List<RunOutcome>(request.Tests.Count);
         foreach (var test in request.Tests)
         {
-            runs.Add(await programRunner.RunAsync(
-                profile,
-                artifact,
-                new TestCase(test!.Input!, test.Expected!),
-                cancellationToken));
+            var executions = new List<RunOutcome>(request.RunsPerTest);
+            for (var i = 0; i < request.RunsPerTest; i++)
+            {
+                executions.Add(await programRunner.RunAsync(
+                    profile,
+                    artifact,
+                    new TestCase(test!.Input!, test.Expected!),
+                    cancellationToken));
+            }
+
+            runs.Add(RunOutcome.Aggregate(executions));
         }
 
         return Ok(new SubmissionResult(true, null, runs));
@@ -53,6 +59,9 @@ public sealed record RunnerRequest
 
     [Required]
     public string Code { get; init; } = string.Empty;
+
+    [Range(1, 5)]
+    public int RunsPerTest { get; init; } = 1;
 
     [Required, MinLength(1)]
     public List<RunnerTestRequest?> Tests { get; init; } = [];
