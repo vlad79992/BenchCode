@@ -51,6 +51,8 @@ public sealed class ProgramRunner(IDockerClient docker)
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(code);
 
+        await EnsureImagesAsync(profile, ct);
+
         var id = (await docker.Containers.CreateContainerAsync(profile.BuildCompilerContainer(), ct)).ID;
         try
         {
@@ -122,7 +124,8 @@ public sealed class ProgramRunner(IDockerClient docker)
                 status != 0 ? Verdict.RE :
                 Tokens(actual) == Tokens(test.Expected) ? Verdict.AC : Verdict.WA;
 
-            return new RunOutcome(verdict, stdout, stderr, status, Elapsed(state));
+            var elapsed = Elapsed(state);
+            return new RunOutcome(verdict, stdout, stderr, status, elapsed);
         }
         finally { await RemoveAsync(id); }
     }
