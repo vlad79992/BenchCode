@@ -14,9 +14,12 @@ import org.codebench.composewebapp.shared.RoleSelection
 import org.codebench.composewebapp.shared.Settings
 import org.codebench.composewebapp.shared.viewmodels.SettingsViewModel
 import org.codebench.composewebapp.student.CompetitionMainScreen
+import org.codebench.composewebapp.student.CompetitionRepository
 import org.codebench.composewebapp.student.CompetitionSelection
+import org.codebench.composewebapp.student.TaskScreen
 import org.codebench.composewebapp.student.viewmodels.CompetitionMainScreenViewModel
 import org.codebench.composewebapp.student.viewmodels.CompetitionSelectionViewModel
+import org.codebench.composewebapp.student.viewmodels.TaskViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -44,8 +47,16 @@ val appModule = module {
     single { UserPreferencesRepository(dataStore = get()) }
     // Это viewmodel (хранят данные экранов)
     viewModel { SettingsViewModel(repository = get()) }
-    viewModel { CompetitionSelectionViewModel() }
-    viewModel { (competitionId: String) -> CompetitionMainScreenViewModel(competitionId) }
+    single { CompetitionRepository(get(), get()) }
+    viewModel { CompetitionSelectionViewModel(get()) }
+    viewModel { (competitionId: String) -> CompetitionMainScreenViewModel(competitionId, get()) }
+    viewModel { (route: StudentRoute.TaskDetails) ->
+        TaskViewModel(route.competitionId, route.taskId, get())
+    }
+
+    navigation<StudentRoute.TaskDetails> { route ->
+        AuthTheme { TaskScreen(route) }
+    }
 
     navigation<SharedRoute.RoleSelection> {
         RoleSelection()
@@ -60,6 +71,6 @@ val appModule = module {
     }
 
     navigation<StudentRoute.CompetitionMainScreen> { route ->
-        CompetitionMainScreen(competitionId = route.competitionId)
+        AuthTheme { CompetitionMainScreen(competitionId = route.competitionId) }
     }
 }

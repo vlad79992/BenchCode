@@ -48,11 +48,6 @@ var authService = builder.AddDotnetProject("auth", "../BenchCode.AuthService/Ben
     .WithReference(authDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
 
-builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
-    .WithReference(authService)
-    .WaitFor(authService)
-    .WaitForCompletion(composeWasmBuild);
-
 var competitionsDb = postgres.AddDatabase("competitionsdb");
 var solutionsDb = postgres.AddDatabase("solutionsdb");
 
@@ -60,6 +55,13 @@ var competitionService = builder.AddDotnetProject("competition", "../BenchCode.C
     .WaitFor(competitionsDb)
     .WithReference(competitionsDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
+
+builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
+    .WithReference(authService)
+    .WithReference(competitionService)
+    .WaitFor(authService)
+    .WaitFor(competitionService)
+    .WaitForCompletion(composeWasmBuild);
 
 //var programRunnerService = builder.AddProject<Projects.BenchCode_ProgramRunnerService>("program-runner");
 var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")

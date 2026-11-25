@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -23,6 +25,7 @@ import org.codebench.composewebapp.navigation.LocalNavBackStack
 import org.codebench.composewebapp.navigation.SharedRoute
 import org.codebench.composewebapp.navigation.StudentRoute
 import org.codebench.composewebapp.resources.*
+import org.codebench.composewebapp.shared.submitOnEnter
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -34,8 +37,22 @@ internal fun LoginScreen() {
     val backstack = LocalNavBackStack.current
     NavigateAfterAuth(state.authenticated)
     AuthLayout("Вход", state) {
-        AuthInput("Электронный адрес", AuthField.Email, state, viewModel, KeyboardType.Email)
-        AuthInput("Пароль", AuthField.Password, state, viewModel, KeyboardType.Password)
+        AuthInput(
+            "Электронный адрес",
+            AuthField.Email,
+            state,
+            viewModel,
+            KeyboardType.Email,
+            viewModel::login,
+        )
+        AuthInput(
+            "Пароль",
+            AuthField.Password,
+            state,
+            viewModel,
+            KeyboardType.Password,
+            viewModel::login,
+        )
         Row {
             TextButton(
                 enabled = !state.submitting,
@@ -53,25 +70,36 @@ internal fun RegistrationScreen() {
     val viewModel = koinViewModel<AuthViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val backstack = LocalNavBackStack.current
-    AuthLayout("Регистрация", state) {
-        AuthInput("Фамилия", AuthField.LastName, state, viewModel)
-        AuthInput("Имя", AuthField.FirstName, state, viewModel)
-        AuthInput("Электронный адрес", AuthField.Email, state, viewModel, KeyboardType.Email)
-        Button(
-            onClick = {
-                if (viewModel.validateProfile()) {
-                    backstack.add(
-                        SharedRoute.RegistrationPassword(
-                            state[AuthField.FirstName].trim(),
-                            state[AuthField.LastName].trim(),
-                            state[AuthField.Email].trim(),
-                        )
-                    )
-                }
-            }
-        ) {
-            Text("Далее")
+    fun continueRegistration() {
+        if (backstack.lastOrNull() == SharedRoute.Registration && viewModel.validateProfile()) {
+            val current = viewModel.state.value
+            backstack.add(
+                SharedRoute.RegistrationPassword(
+                    current[AuthField.FirstName].trim(),
+                    current[AuthField.LastName].trim(),
+                    current[AuthField.Email].trim(),
+                )
+            )
         }
+    }
+    AuthLayout("Регистрация", state) {
+        AuthInput(
+            "Фамилия",
+            AuthField.LastName,
+            state,
+            viewModel,
+            onSubmit = ::continueRegistration,
+        )
+        AuthInput("Имя", AuthField.FirstName, state, viewModel, onSubmit = ::continueRegistration)
+        AuthInput(
+            "Электронный адрес",
+            AuthField.Email,
+            state,
+            viewModel,
+            KeyboardType.Email,
+            ::continueRegistration,
+        )
+        Button(onClick = ::continueRegistration) { Text("Далее") }
         TextButton(onClick = { backstack.removeAt(backstack.lastIndex) }) { Text("Назад") }
     }
 }
@@ -82,16 +110,18 @@ internal fun RegistrationPasswordScreen(profile: SharedRoute.RegistrationPasswor
     val state by viewModel.state.collectAsStateWithLifecycle()
     val backstack = LocalNavBackStack.current
     NavigateAfterAuth(state.authenticated)
+    val submit = { viewModel.register(profile) }
     AuthLayout("Создайте пароль", state) {
-        AuthInput("Пароль", AuthField.Password, state, viewModel, KeyboardType.Password)
+        AuthInput("Пароль", AuthField.Password, state, viewModel, KeyboardType.Password, submit)
         AuthInput(
             "Повторите пароль",
             AuthField.Confirmation,
             state,
             viewModel,
             KeyboardType.Password,
+            submit,
         )
-        Button(enabled = !state.submitting, onClick = { viewModel.register(profile) }) {
+        Button(enabled = !state.submitting, onClick = submit) {
             Text("Далее")
         }
         TextButton(
@@ -121,12 +151,13 @@ private fun AuthInput(
     state: AuthState,
     viewModel: AuthViewModel,
     keyboardType: KeyboardType = KeyboardType.Text,
+    onSubmit: () -> Unit,
 ) {
     val error = state.errors[field]
     OutlinedTextField(
         value = state[field],
         onValueChange = { viewModel.edit(field, it) },
-        modifier = Modifier.widthIn(max = 344.dp).fillMaxWidth(),
+        modifier = Modifier.widthIn(max = 344.dp).fillMaxWidth().submitOnEnter(onSubmit),
         label = { Text(label) },
         singleLine = true,
         enabled = !state.submitting,
@@ -138,7 +169,8 @@ private fun AuthInput(
                 AuthField.Confirmation -> PasswordVisualTransformation()
                 else -> VisualTransformation.None
             },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onSubmit() }),
     )
 }
 

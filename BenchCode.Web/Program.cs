@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Hosting;
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults(useHttpResilience: false);
 
-builder.Services.AddHttpClient("auth", client => client.BaseAddress = new Uri("https://auth"))
+AddProxyClient("auth");
+AddProxyClient("competition");
+
+void AddProxyClient(string service) => builder.Services
+    .AddHttpClient(service, client => client.BaseAddress = new Uri($"https://{service}"))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
     {
         AllowAutoRedirect = false,
@@ -14,14 +18,27 @@ var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
-app.MapPost("/api/users/register", ForwardAuthRequest);
-app.MapPost("/connect/token", ForwardAuthRequest);
+app.MapPost("/api/users/register", (HttpContext context, IHttpClientFactory clients) =>
+    ForwardRequest(context, clients, "auth"));
+app.MapPost("/connect/token", (HttpContext context, IHttpClientFactory clients) =>
+    ForwardRequest(context, clients, "auth"));
+
+var competitions = app.MapGroup("/api/competitions");
+competitions.MapPost("/join", ForwardCompetitionRequest);
+competitions.MapGet("/{id}", ForwardCompetitionRequest);
+competitions.MapGet("/{id}/tasks", ForwardCompetitionRequest);
+competitions.MapGet("/{id}/tasks/{taskId:int}", ForwardCompetitionRequest);
+competitions.MapPost("/{id}/tasks/{taskId:int}/submit", ForwardCompetitionRequest);
+competitions.MapGet("/{id}/tasks/{taskId:int}/submissions/{submissionId:int}", ForwardCompetitionRequest);
 app.MapFallbackToFile("index.html");
 app.MapDefaultEndpoints();
 
 app.Run();
 
-static async Task ForwardAuthRequest(HttpContext context, IHttpClientFactory clients)
+static Task ForwardCompetitionRequest(HttpContext context, IHttpClientFactory clients) =>
+    ForwardRequest(context, clients, "competition");
+
+static async Task ForwardRequest(HttpContext context, IHttpClientFactory clients, string service)
 {
     if (!context.Request.IsHttps)
     {
@@ -30,16 +47,21 @@ static async Task ForwardAuthRequest(HttpContext context, IHttpClientFactory cli
     }
 
     var path = context.Request.Path.Value!;
-    using var request = new HttpRequestMessage(HttpMethod.Post, path)
+    using var request = new HttpRequestMessage(new HttpMethod(context.Request.Method), path);
+    if (HttpMethods.IsPost(context.Request.Method))
     {
-        Content = new StreamContent(context.Request.Body)
-    };
-    if (context.Request.ContentType is { } contentType)
+        request.Content = new StreamContent(context.Request.Body);
+        if (context.Request.ContentType is { } contentType)
+        {
+            request.Content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+        }
+    }
+    if (service == "competition" && context.Request.Headers.Authorization is { Count: 1 } authorization)
     {
-        request.Content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+        request.Headers.TryAddWithoutValidation("Authorization", authorization.ToString());
     }
 
-    using var client = clients.CreateClient("auth");
+    using var client = clients.CreateClient(service);
     using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
         context.RequestAborted);
     context.Response.StatusCode = (int)response.StatusCode;
