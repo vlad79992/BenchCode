@@ -51,6 +51,8 @@ public sealed class ProgramRunner(IDockerClient docker)
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(code);
 
+        await EnsureImagesAsync(profile, ct);
+
         var id = (await docker.Containers.CreateContainerAsync(profile.BuildCompilerContainer(), ct)).ID;
         try
         {
@@ -91,7 +93,13 @@ public sealed class ProgramRunner(IDockerClient docker)
         finally { await RemoveAsync(id); }
     }
 
-    public async Task<RunOutcome> RunAsync(LanguageProfile profile, Artifact artifact, TestCase test, CancellationToken ct = default)
+    public async Task<RunOutcome> RunAsync(
+        LanguageProfile profile,
+        Artifact artifact,
+        TestCase test,
+        CancellationToken ct = default,
+        LanguageProfile? checkerProfile = null,
+        Artifact? checkerArtifact = null)
     {
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(artifact);
@@ -99,33 +107,98 @@ public sealed class ProgramRunner(IDockerClient docker)
         ArgumentNullException.ThrowIfNull(test);
         ArgumentNullException.ThrowIfNull(test.Input);
         ArgumentNullException.ThrowIfNull(test.Expected);
+        if ((checkerProfile is null) != (checkerArtifact is null))
+            throw new ArgumentException("Both checker profile and artifact must be provided together.");
 
+        var execution = await ExecuteAsync(profile, artifact, [
+            new TarFile("workspace/input.txt", Encoding.UTF8.GetBytes(test.Input), File0644),
+        ], ct);
+        var run = new RunOutcome(
+            GetProgramVerdict(execution, test.Expected, checkerProfile is not null),
+            execution.Stdout,
+            execution.Stderr,
+            execution.ExitCode,
+            execution.Time);
+
+        if (checkerProfile is null || run.Verdict != Verdict.AC)
+            return run;
+
+        // Checkers read input.txt, expected.txt, and actual.txt; exit codes 0 and 1 mean AC and WA.
+        var checkerExecution = await ExecuteAsync(checkerProfile, checkerArtifact!, [
+            new TarFile("workspace/input.txt", Encoding.UTF8.GetBytes(test.Input), File0644),
+            new TarFile("workspace/expected.txt", Encoding.UTF8.GetBytes(test.Expected), File0644),
+            new TarFile("workspace/actual.txt", Encoding.UTF8.GetBytes(execution.Stdout), File0644),
+        ], ct);
+
+        var checkerVerdict =
+            checkerExecution.TimedOut || checkerExecution.OOMKilled ||
+            checkerExecution.StdoutTruncated || checkerExecution.StderrTruncated
+                ? Verdict.SE
+                : checkerExecution.ExitCode switch
+                {
+                    0 => Verdict.AC,
+                    1 => Verdict.WA,
+                    _ => Verdict.SE,
+                };
+
+        return run with
+        {
+            Verdict = checkerVerdict,
+            Stderr = checkerVerdict == Verdict.SE ? checkerExecution.Stderr : run.Stderr,
+        };
+    }
+
+    private async Task<ContainerExecution> ExecuteAsync(
+        LanguageProfile profile,
+        Artifact artifact,
+        IReadOnlyList<TarFile> inputFiles,
+        CancellationToken ct)
+    {
         var id = (await docker.Containers.CreateContainerAsync(profile.BuildRunnerContainer(), ct)).ID;
         try
         {
-            var artifactName = Path.GetFileName(profile.ArtifactPath);
-            await InjectAsync(id, [
-                new TarFile($"workspace/{artifactName}", artifact.Bytes, File0755),
-                new TarFile("workspace/input.txt", Encoding.UTF8.GetBytes(test.Input), File0644),
-            ], ct);
+            var files = new List<TarFile>(inputFiles.Count + 1)
+            {
+                new($"workspace/{Path.GetFileName(profile.ArtifactPath)}", artifact.Bytes, File0755),
+            };
+            files.AddRange(inputFiles);
+            await InjectAsync(id, [.. files], ct);
 
             var (status, timedOut) = await StartAndWaitAsync(id, profile.RunTimeout, ct);
-            var (stdout, stderr, stdoutTruncated, _) = await ReadLogsAsync(id, OutputCap, StderrCap, ct);
+            var (stdout, stderr, stdoutTruncated, stderrTruncated) =
+                await ReadLogsAsync(id, OutputCap, StderrCap, ct);
             var state = (await docker.Containers.InspectContainerAsync(id, ct)).State!;
 
-            var actual = stdout;
-
-            var verdict =
-                timedOut ? Verdict.TLE :
-                state.OOMKilled ? Verdict.MLE :
-                stdoutTruncated ? Verdict.OLE :
-                status != 0 ? Verdict.RE :
-                Tokens(actual) == Tokens(test.Expected) ? Verdict.AC : Verdict.WA;
-
-            return new RunOutcome(verdict, stdout, stderr, status, Elapsed(state));
+            return new ContainerExecution(
+                status,
+                timedOut,
+                state.OOMKilled,
+                stdout,
+                stderr,
+                stdoutTruncated,
+                stderrTruncated,
+                Elapsed(state));
         }
         finally { await RemoveAsync(id); }
     }
+
+    private static Verdict GetProgramVerdict(ContainerExecution execution, string expected, bool useCustomChecker) =>
+        execution.TimedOut ? Verdict.TLE :
+        execution.OOMKilled ? Verdict.MLE :
+        execution.StdoutTruncated ? Verdict.OLE :
+        execution.ExitCode != 0 ? Verdict.RE :
+        useCustomChecker ? Verdict.AC :
+        Tokens(execution.Stdout) == Tokens(expected) ? Verdict.AC : Verdict.WA;
+
+    private sealed record ContainerExecution(
+        long ExitCode,
+        bool TimedOut,
+        bool OOMKilled,
+        string Stdout,
+        string Stderr,
+        bool StdoutTruncated,
+        bool StderrTruncated,
+        TimeSpan Time);
 
     private async Task InjectAsync(string id, TarFile[] files, CancellationToken ct)
     {
