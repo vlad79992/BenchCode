@@ -41,16 +41,17 @@ var postgres = builder.AddPostgres("postgres")
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq");
 
-//builder.AddProject<Projects.BenchCode_Web>("web")
-builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
-    .WaitForCompletion(composeWasmBuild);
-
 var authDb = postgres.AddDatabase("authdb");
 //var authService = builder.AddProject<Projects.BenchCode_AuthService>("auth")
 var authService = builder.AddDotnetProject("auth", "../BenchCode.AuthService/BenchCode.AuthService.csproj")
     .WaitFor(authDb)
     .WithReference(authDb)
     .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
+
+builder.AddDotnetProject("web", "../BenchCode.Web/BenchCode.Web.csproj")
+    .WithReference(authService)
+    .WaitFor(authService)
+    .WaitForCompletion(composeWasmBuild);
 
 var competitionsDb = postgres.AddDatabase("competitionsdb");
 var solutionsDb = postgres.AddDatabase("solutionsdb");
