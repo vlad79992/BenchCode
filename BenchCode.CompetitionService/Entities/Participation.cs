@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BenchCode.CompetitionService.Entities;
 
@@ -12,6 +13,7 @@ public class Participation
     public string UserId { get; set; } = string.Empty;
     public ContestPermission Permission { get; set; } = ContestPermission.Participant;
     public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
+    [ForeignKey(nameof(CompetitionId))]
     public Competition? Competition { get; set; }
 }
 

@@ -18,9 +18,8 @@ public class CompetitionDbContext(DbContextOptions<CompetitionDbContext> options
             .HasIndex(competition => competition.Id)
             .IsUnique();
 
-        modelBuilder.Entity<Participation>()
-            .HasIndex(participation => new { participation.CompetitionId, participation.UserId })
-            .IsUnique();
+        // уже добавлен через DbSet, можно удалить
+        modelBuilder.Entity<Participation>();
 
         modelBuilder.Entity<CompetitionTask>()
             .HasIndex(task => new { task.CompetitionId, task.OrderNo })

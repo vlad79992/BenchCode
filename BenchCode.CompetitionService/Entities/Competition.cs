@@ -9,12 +9,12 @@ public class Competition
 {
     /// <summary>
     /// Уникальный идентификатор соревнования. <br/>
-    /// Состоит из 6 символов. 
+    /// Состоит из 6 символов.
     /// Каждый символ может быть цифрой или буквой латинского алфавита в верхнем регистре. <br/>
     /// Исключены символы, которые могут быть спутаны с другими: <c>0</c>, <c>O</c>, <c>I</c>, <c>1</c>
     /// </summary>
     [Key]
-    [MaxLength(6)]
+    [Length(minimumLength: 6, maximumLength: 6)]
     public string Id { get; set; } = string.Empty;
 
     [Required, MaxLength(200)]
@@ -24,8 +24,9 @@ public class Competition
     /// </summary>
     public string? Description { get; set; }
     [Required]
-    public string CreatorId { get; set; } = string.Empty;
-    public DateTimeOffset? Deadline { get; set; }
+    public Guid CreatorId { get; set; }
+    public DateTimeOffset? StartTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
     /// <summary>
     /// Статус соревнования.
     /// Может быть:
@@ -44,12 +45,11 @@ public class Competition
     public CompetitionStatus Status { get; set; } = CompetitionStatus.Draft;
     /// <summary>
     /// Версия соревнования. <br/>
-    /// При каждом изменении версия соревнования увеличивается, 
+    /// При каждом изменении версия соревнования увеличивается,
     /// чтобы при изменении соревнования старые отправки не учитывались в новых версиях.
     /// </summary>
     public int Version { get; set; } = 1;
     public bool AllowViewOthersCode { get; set; }
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public ICollection<Participation> Participations { get; set; } = [];
     public ICollection<CompetitionTask> Tasks { get; set; } = [];

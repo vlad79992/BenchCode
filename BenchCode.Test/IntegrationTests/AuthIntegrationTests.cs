@@ -101,6 +101,38 @@ public sealed class AuthIntegrationTests(Fixture fixture)
     }
 
     [Fact]
+    public async Task GetProfilesByIds_ReturnsRequestedPublicProfiles()
+    {
+        using var client = CreateClient();
+        var user = CreateUser();
+
+        using var registration = await RegisterAsync(client, user);
+        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
+
+        using var registrationBody = JsonDocument.Parse(await registration.Content.ReadAsStringAsync());
+        var userId = registrationBody.RootElement.GetProperty("id").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(userId));
+
+        var accessToken = await GetAccessTokenAsync(client, user);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/users/profiles/by-ids")
+        {
+            Content = JsonContent.Create(new { userIds = new[] { userId, "unknown-user-id", userId } })
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var profile = Assert.Single(body.RootElement.EnumerateArray());
+        Assert.Equal(userId, profile.GetProperty("id").GetString());
+        Assert.Equal(user.FirstName, profile.GetProperty("firstName").GetString());
+        Assert.Equal(user.LastName, profile.GetProperty("lastName").GetString());
+        Assert.False(profile.TryGetProperty("email", out _));
+        Assert.False(profile.TryGetProperty("userName", out _));
+    }
+
+    [Fact]
     public async Task GetCurrentUser_WithoutToken_ReturnsUnauthorized()
     {
         using var client = CreateClient();
@@ -175,7 +207,12 @@ public sealed class AuthIntegrationTests(Fixture fixture)
     private static TestUser CreateUser()
     {
         var userName = $"test-{Guid.NewGuid():N}";
-        return new TestUser(userName, $"{userName}@example.com", "Test-password-123!");
+        return new TestUser(
+            userName,
+            $"{userName}@example.com",
+            "Test-password-123!",
+            $"First-{userName}",
+            $"Last-{userName}");
     }
 
     private HttpClient CreateClient() =>
@@ -187,7 +224,14 @@ public sealed class AuthIntegrationTests(Fixture fixture)
     private static Task<HttpResponseMessage> RegisterAsync(HttpClient client, TestUser user) =>
         client.PostAsJsonAsync(
             "/users/register",
-            new { userName = user.UserName, email = user.Email, password = user.Password });
+            new
+            {
+                userName = user.UserName,
+                email = user.Email,
+                password = user.Password,
+                firstName = user.FirstName,
+                lastName = user.LastName
+            });
 
     private static Task<HttpResponseMessage> RequestTokenAsync(
         HttpClient client,
@@ -199,7 +243,7 @@ public sealed class AuthIntegrationTests(Fixture fixture)
             {
                 ["grant_type"] = "password",
                 ["client_id"] = "compose-web-app",
-                ["username"] = user.UserName,
+                ["username"] = user.Email,
                 ["password"] = password,
                 ["scope"] = "benchcode-api"
             }));
@@ -216,5 +260,10 @@ public sealed class AuthIntegrationTests(Fixture fixture)
                ?? throw new InvalidOperationException("The token response has no access_token.");
     }
 
-    private sealed record TestUser(string UserName, string Email, string Password);
+    private sealed record TestUser(
+        string UserName,
+        string Email,
+        string Password,
+        string FirstName,
+        string LastName);
 }

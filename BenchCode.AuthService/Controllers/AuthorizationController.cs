@@ -26,7 +26,7 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
     /// Для входа используйте `grant_type=password`; для обновления токена —
     /// `grant_type=refresh_token`.
     ///
-    /// При входе нужны `username` и `password`. Поддерживаемые scope:
+    /// При входе передайте адрес электронной почты в стандартном поле `username` и пароль. Поддерживаемые scope:
     /// `benchcode-api` и `offline_access` — последний нужен для получения
     /// refresh token.
     /// </remarks>
@@ -41,12 +41,13 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
 
         if (request.IsPasswordGrantType())
         {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrEmpty(request.Password))
+            var email = request.Username?.Trim();
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(request.Password))
             {
                 return InvalidGrant();
             }
 
-            var user = await userManager.FindByNameAsync(request.Username);
+            var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 return InvalidGrant();
@@ -113,7 +114,7 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
             properties: new AuthenticationProperties(new Dictionary<string, string?>
             {
                 [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Неверное имя пользователя или пароль."
+                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Неверная почта или пароль."
             }));
 
     /// <summary>Параметры запроса для получения или обновления токена.</summary>
@@ -129,8 +130,8 @@ public class AuthorizationController(SignInManager<User> signInManager, UserMana
         [FromForm(Name = "client_id")]
         public string? ClientId { get; set; }
 
-        /// <summary>Имя пользователя; используется для `grant_type=password`.</summary>
-        [Description("Имя пользователя; используется для grant_type=password.")]
+        /// <summary>Адрес электронной почты пользователя; передаётся в стандартном поле `username`.</summary>
+        [Description("Адрес электронной почты пользователя; используется как значение поля username для grant_type=password.")]
         [FromForm(Name = "username")]
         public string? Username { get; set; }
 
