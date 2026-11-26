@@ -7,9 +7,9 @@ using Testcontainers.PostgreSql;
 
 namespace BenchCode.Test;
 
-public sealed class AuthFixture : IAsyncLifetime
+public sealed class Fixture : IAsyncLifetime
 {
-    private const string PostgresImage = "postgres:18.7";
+    private const string PostgresImage = "postgres:19.0";
 
     private readonly PostgreSqlContainer authDbContainer =
         new PostgreSqlBuilder(PostgresImage).Build();

@@ -6,9 +6,9 @@ using System.Text.Json;
 namespace BenchCode.Test.IntegrationTests;
 
 [Collection("AuthTests")]
-public sealed class CompetitionIntegrationTests(AuthFixture fixture)
+public sealed class CompetitionIntegrationTests(Fixture fixture)
 {
-    private readonly AuthFixture fixture = fixture;
+    private readonly Fixture fixture = fixture;
 
     [Fact]
     public async Task CreateCompetition_WithoutAuthentication_ReturnsUnauthorized()

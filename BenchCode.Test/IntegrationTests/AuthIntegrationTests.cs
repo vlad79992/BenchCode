@@ -10,9 +10,9 @@ using System.Text.Json;
 namespace BenchCode.Test.IntegrationTests;
 
 [Collection("AuthTests")]
-public sealed class AuthIntegrationTests(AuthFixture fixture)
+public sealed class AuthIntegrationTests(Fixture fixture)
 {
-    private readonly AuthFixture fixture = fixture;
+    private readonly Fixture fixture = fixture;
 
     [Fact]
     public async Task Register_WithValidData_ReturnsCreatedUser()

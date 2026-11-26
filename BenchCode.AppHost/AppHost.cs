@@ -37,7 +37,7 @@ var composeWasmBuild = builder.AddExecutable(
     ]);
 
 var postgres = builder.AddPostgres("postgres")
-                      .WithImageTag("18.7")
+                      .WithImageTag("19.0")
                       .WithDataVolume();
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq");

@@ -12,4 +12,4 @@ BenchCode.ComposeWebApp/dokka/target/
 CoverageReport
 **.sln.DotSettings.user
 **.csproj.user
-.DS_STORE
+**/.DS_STORE
