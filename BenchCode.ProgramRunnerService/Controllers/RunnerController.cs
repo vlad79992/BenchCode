@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using BenchCode.ProgramRunnerService.Entities;
 using BenchCode.ProgramRunnerService.Entities.LanguageProfiles;
+using BenchCode.Shared.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BenchCode.ProgramRunnerService.Controllers;
@@ -42,7 +43,7 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
                                                        artifact,
                                                        new TestCase(test!.Input!, test.Expected!),
                                                        cancellationToken);
-            if (outcome.Verdict != Verdict.AC)
+            if (outcome.Verdict != Verdict.OK)
             {
                 runs.Add(outcome);
                 break;
@@ -56,7 +57,7 @@ public sealed class RunnerController(ProgramRunner programRunner) : ControllerBa
                                                                cancellationToken);
                 (totalTicks, totalRuns) = (totalTicks + tempOutcome.Time.Ticks, totalRuns + 1);
 
-                if (tempOutcome.Verdict != Verdict.AC)
+                if (tempOutcome.Verdict != Verdict.OK)
                 {
                     outcome = tempOutcome;
                     break;

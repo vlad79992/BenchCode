@@ -1,5 +1,6 @@
 using BenchCode.ProgramRunnerService.Entities;
 using BenchCode.ProgramRunnerService.Entities.LanguageProfiles;
+using BenchCode.Shared.Entities;
 using Docker.DotNet;
 
 namespace BenchCode.Test.IntegrationTests;
@@ -44,6 +45,8 @@ public sealed class ProgramRunnerIntegrationTests
         }
     };
 
+    public Verdict Verdict { get; private set; }
+
     [Theory]
     [MemberData(nameof(RunnerPrograms))]
     [Trait("Category", "DockerIntegration")]
@@ -63,7 +66,7 @@ public sealed class ProgramRunnerIntegrationTests
             build.Artifact,
             new TestCase("world\n", "Hello world\n"));
 
-        Assert.Equal(Verdict.AC, result.Verdict);
+        Assert.Equal(Verdict.OK, result.Verdict);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("Hello world\n", result.Stdout);
     }

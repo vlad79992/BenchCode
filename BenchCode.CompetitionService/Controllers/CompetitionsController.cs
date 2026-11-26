@@ -1,4 +1,5 @@
 using BenchCode.CompetitionService.Entities;
+using BenchCode.Shared.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -293,7 +294,7 @@ public class CompetitionsController(CompetitionDbContext db) : ControllerBase
             var latest = task.Submissions.Where(submission => submission.UserId == userId)
                 .OrderByDescending(submission => submission.SubmittedAt).FirstOrDefault();
             var status = latest?.Status == SubmissionStatus.Testing ? "Тестируется"
-                : latest?.Verdict == Verdict.AC ? "Решена"
+                : latest?.Verdict == Verdict.OK ? "Решена"
                 : latest is not null ? $"Ошибка ({latest.Verdict?.ToString() ?? latest.Status.ToString()})"
                 : "Новая";
             return new TaskResponse(task.Id, task.OrderNo, task.Name, task.StatementMarkdown,
@@ -655,7 +656,7 @@ public class CompetitionsController(CompetitionDbContext db) : ControllerBase
             .Where(submission => submission.CompetitionId == competition.Id &&
                                  submission.CompetitionVersion == competition.Version &&
                                  !submission.IsLate &&
-                                 submission.Verdict == Verdict.AC)
+                                 submission.Verdict == Verdict.OK)
             .ToListAsync(cancellationToken);
 
         var bestByUserTask = submissions

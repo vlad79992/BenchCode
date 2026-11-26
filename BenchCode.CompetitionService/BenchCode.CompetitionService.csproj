@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.6.5" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
     <PackageReference Include="OpenIddict.AspNetCore" Version="7.8.0" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BenchCode.Shared\BenchCode.Shared.csproj" />
   </ItemGroup>
 
 </Project>

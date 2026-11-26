@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Text;
+using BenchCode.Shared.Entities;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
@@ -122,7 +123,7 @@ public sealed class ProgramRunner(IDockerClient docker)
                 state.OOMKilled ? Verdict.MLE :
                 stdoutTruncated ? Verdict.OLE :
                 status != 0 ? Verdict.RE :
-                Tokens(actual) == Tokens(test.Expected) ? Verdict.AC : Verdict.WA;
+                Tokens(actual) == Tokens(test.Expected) ? Verdict.OK : Verdict.WA;
 
             var elapsed = Elapsed(state);
             return new RunOutcome(verdict, stdout, stderr, status, elapsed);

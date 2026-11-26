@@ -26,6 +26,10 @@
         <ProjectReference Include="..\BenchCode.Gateway\BenchCode.Gateway.csproj" Aliases="global,Gateway" />
     </ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\BenchCode.Shared\BenchCode.Shared.csproj" />
+	</ItemGroup>
+	
     <ItemGroup>
         <Using Include="Xunit" />
     </ItemGroup>

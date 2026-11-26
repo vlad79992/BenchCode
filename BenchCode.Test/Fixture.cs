@@ -20,7 +20,7 @@ public sealed class Fixture : IAsyncLifetime
 
 
     public WebApplicationFactory<AuthService::Program> AuthServiceFactory { get; private set; } = null!;
-    public WebApplicationFactory<CompetitionService::BenchCode.CompetitionService.Program> CompetitionFactory { get; private set; } = null!;
+    public WebApplicationFactory<CompetitionService::Program> CompetitionFactory { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
@@ -37,7 +37,7 @@ public sealed class Fixture : IAsyncLifetime
                 builder.UseSetting("OpenIddict:Issuer", "https://localhost:5001/");
             });
 
-        CompetitionFactory = new WebApplicationFactory<CompetitionService::BenchCode.CompetitionService.Program>()
+        CompetitionFactory = new WebApplicationFactory<CompetitionService::Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");
