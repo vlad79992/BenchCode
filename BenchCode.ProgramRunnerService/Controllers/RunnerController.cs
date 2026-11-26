@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using BenchCode.ProgramRunnerService.Entities;
+using BenchCode.ProgramRunnerService.Entities.LanguageProfiles;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BenchCode.ProgramRunnerService.Controllers;

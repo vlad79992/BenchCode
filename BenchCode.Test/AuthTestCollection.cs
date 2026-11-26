@@ -1,6 +1,6 @@
 namespace BenchCode.Test;
 
-[CollectionDefinition("AuthTests", DisableParallelization = true)]
+[CollectionDefinition("AuthTests", DisableParallelization = false)]
 public sealed class AuthTestCollection : ICollectionFixture<AuthFixture>
 {
 }

@@ -4,6 +4,7 @@
 **/obj
 TestResults
 BenchCode.Gateway/wwwroot
+BenchCode.Web
 .dokka
 .api
 _site

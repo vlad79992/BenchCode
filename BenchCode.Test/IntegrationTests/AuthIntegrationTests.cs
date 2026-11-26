@@ -7,17 +7,12 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace BenchCode.Test;
+namespace BenchCode.Test.IntegrationTests;
 
 [Collection("AuthTests")]
-public sealed class AuthIntegrationTests
+public sealed class AuthIntegrationTests(AuthFixture fixture)
 {
-    private readonly AuthFixture fixture;
-
-    public AuthIntegrationTests(AuthFixture fixture)
-    {
-        this.fixture = fixture;
-    }
+    private readonly AuthFixture fixture = fixture;
 
     [Fact]
     public async Task Register_WithValidData_ReturnsCreatedUser()
@@ -71,7 +66,7 @@ public sealed class AuthIntegrationTests
         using var response = await RegisterAsync(client, user);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        using var scope = fixture.Factory.Services.CreateScope();
+        using var scope = fixture.AuthServiceFactory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         var storedUser = await userManager.FindByNameAsync(user.UserName);
 
@@ -138,7 +133,7 @@ public sealed class AuthIntegrationTests
         using var registration = await RegisterAsync(httpsClient, user);
         Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
 
-        using var httpClient = fixture.Factory.CreateClient(
+        using var httpClient = fixture.AuthServiceFactory.CreateClient(
             new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new Uri("http://localhost")
@@ -184,7 +179,7 @@ public sealed class AuthIntegrationTests
     }
 
     private HttpClient CreateClient() =>
-        fixture.Factory.CreateClient(new WebApplicationFactoryClientOptions
+        fixture.AuthServiceFactory.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost")
         });

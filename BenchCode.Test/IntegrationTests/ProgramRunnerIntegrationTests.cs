@@ -1,8 +1,8 @@
-extern alias RunnerService;
+using BenchCode.ProgramRunnerService.Entities;
+using BenchCode.ProgramRunnerService.Entities.LanguageProfiles;
 using Docker.DotNet;
-using RunnerEntities = RunnerService::BenchCode.ProgramRunnerService.Entities;
 
-namespace BenchCode.Test;
+namespace BenchCode.Test.IntegrationTests;
 
 public sealed class ProgramRunnerIntegrationTests
 {
@@ -50,7 +50,7 @@ public sealed class ProgramRunnerIntegrationTests
     public async Task Runner_BuildsAndRunsProgram(string language, string source)
     {
         using var docker = new DockerClientBuilder().Build();
-        var runner = new RunnerEntities.ProgramRunner(docker);
+        var runner = new ProgramRunner(docker);
         var profile = CreateProfile(language);
 
         var build = await runner.BuildAsync(profile, source);
@@ -61,18 +61,18 @@ public sealed class ProgramRunnerIntegrationTests
         var result = await runner.RunAsync(
             profile,
             build.Artifact,
-            new RunnerEntities.TestCase("world\n", "Hello world\n"));
+            new TestCase("world\n", "Hello world\n"));
 
-        Assert.Equal(RunnerEntities.Verdict.AC, result.Verdict);
+        Assert.Equal(Verdict.AC, result.Verdict);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("Hello world\n", result.Stdout);
     }
 
-    private static RunnerEntities.LanguageProfile CreateProfile(string language) => language switch
+    private static LanguageProfile CreateProfile(string language) => language switch
     {
-        "cpp" => new RunnerEntities.CppProfile(),
-        "java" => new RunnerEntities.JavaProfile(),
-        "csharp" => new RunnerEntities.CSharpProfile(),
+        "cpp" => new CppProfile(),
+        "java" => new JavaProfile(),
+        "csharp" => new CSharpProfile(),
         _ => throw new ArgumentOutOfRangeException(nameof(language), language, "Unsupported language")
     };
 }
