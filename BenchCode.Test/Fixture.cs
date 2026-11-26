@@ -1,3 +1,5 @@
+extern alias AuthService;
+extern alias CompetitionService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -17,8 +19,8 @@ public sealed class Fixture : IAsyncLifetime
         new PostgreSqlBuilder(PostgresImage).Build();
 
 
-    public WebApplicationFactory<BenchCode.AuthService.Entities.User> AuthServiceFactory { get; private set; } = null!;
-    public WebApplicationFactory<BenchCode.CompetitionService.Program> CompetitionFactory { get; private set; } = null!;
+    public WebApplicationFactory<AuthService::Program> AuthServiceFactory { get; private set; } = null!;
+    public WebApplicationFactory<CompetitionService::BenchCode.CompetitionService.Program> CompetitionFactory { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
@@ -27,7 +29,7 @@ public sealed class Fixture : IAsyncLifetime
         await competitionDbContainer.StartAsync();
 
 
-        AuthServiceFactory = new WebApplicationFactory<BenchCode.AuthService.Entities.User>()
+        AuthServiceFactory = new WebApplicationFactory<AuthService::Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");
@@ -35,7 +37,7 @@ public sealed class Fixture : IAsyncLifetime
                 builder.UseSetting("OpenIddict:Issuer", "https://localhost:5001/");
             });
 
-        CompetitionFactory = new WebApplicationFactory<BenchCode.CompetitionService.Program>()
+        CompetitionFactory = new WebApplicationFactory<CompetitionService::BenchCode.CompetitionService.Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");

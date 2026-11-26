@@ -19,9 +19,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\BenchCode.AuthService\BenchCode.AuthService.csproj" />
-        <ProjectReference Include="..\BenchCode.ProgramRunnerService\BenchCode.ProgramRunnerService.csproj" />
-        <ProjectReference Include="..\BenchCode.CompetitionService\BenchCode.CompetitionService.csproj" />
+    	<!-- Aliases нужен потому что top level statements находятся в глобальном неймспейсе, а Program есть во всех проектах, Aliases - это способ их различать -->
+        <ProjectReference Include="..\BenchCode.AuthService\BenchCode.AuthService.csproj" Aliases="global,AuthService" />
+        <ProjectReference Include="..\BenchCode.ProgramRunnerService\BenchCode.ProgramRunnerService.csproj" Aliases="global,RunnerService" />
+        <ProjectReference Include="..\BenchCode.CompetitionService\BenchCode.CompetitionService.csproj" Aliases="global,CompetitionService" />
+        <ProjectReference Include="..\BenchCode.Gateway\BenchCode.Gateway.csproj" Aliases="global,Gateway" />
     </ItemGroup>
 
     <ItemGroup>
