@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using BenchCode.CompetitionService.Entities;
 using BenchCode.Shared;
+using BenchCode.CompetitionService.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CompetitionTask = BenchCode.CompetitionService.Entities.Task;
-using CompetitionTest = BenchCode.CompetitionService.Entities.Test;
 
 namespace BenchCode.CompetitionService.Controllers;
 
@@ -68,44 +67,14 @@ public sealed class CompetitionEditController(CompetitionDbContext db) : Control
             return ValidationProblem(ModelState);
         }
 
-        var newVersion = new CompetitionVersion
-        {
-            CompetitionId = competition.Id,
-            VersionNumber = competition.Version + 1,
-            Name = name,
-            Description = description,
-            StartTime = startTime,
-            EndTime = endTime,
-            AllowViewOthersCode = request.AllowViewOthersCode ?? currentVersion.AllowViewOthersCode
-        };
-
-        foreach (var oldTask in currentVersion.Tasks.OrderBy(task => task.OrderNo))
-        {
-            var newTask = new CompetitionTask
-            {
-                CompetitionVersion = newVersion,
-                OrderNo = oldTask.OrderNo,
-                Name = oldTask.Name,
-                Description = oldTask.Description,
-                TimeLimitMs = oldTask.TimeLimitMs,
-                MemoryLimitMb = oldTask.MemoryLimitMb,
-                IsArchived = oldTask.IsArchived
-            };
-
-            foreach (var oldTest in oldTask.Tests.OrderBy(test => test.OrderNo))
-            {
-                newTask.Tests.Add(new CompetitionTest
-                {
-                    Task = newTask,
-                    OrderNo = oldTest.OrderNo,
-                    IsPublic = oldTest.IsPublic,
-                    Input = oldTest.Input,
-                    Expected = oldTest.Expected
-                });
-            }
-
-            newVersion.Tasks.Add(newTask);
-        }
+        var newVersion = CompetitionVersionCloner.Clone(
+            currentVersion,
+            competition.Version + 1).Version;
+        newVersion.Name = name;
+        newVersion.Description = description;
+        newVersion.StartTime = startTime;
+        newVersion.EndTime = endTime;
+        newVersion.AllowViewOthersCode = request.AllowViewOthersCode ?? currentVersion.AllowViewOthersCode;
 
         competition.Version = newVersion.VersionNumber;
         db.CompetitionVersions.Add(newVersion);

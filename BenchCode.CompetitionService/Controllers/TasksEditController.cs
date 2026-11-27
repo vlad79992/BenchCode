@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using BenchCode.CompetitionService.Entities;
 using BenchCode.Shared;
+using BenchCode.CompetitionService.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CompetitionTask = BenchCode.CompetitionService.Entities.Task;
@@ -60,12 +61,11 @@ public sealed class TasksEditController(CompetitionDbContext db) : ControllerBas
         if (currentVersion.Tasks.Any(item => item.Id != taskId && item.OrderNo == newOrderNo))
             return Conflict("Another task already uses this order number.");
 
-        var newVersion = CloneVersion(
+        var versionClone = CompetitionVersionCloner.Clone(
             currentVersion,
-            competition.Version + 1,
-            excludedTaskId: null,
-            out var taskCopies);
-        var updatedTask = taskCopies[taskId];
+            competition.Version + 1);
+        var newVersion = versionClone.Version;
+        var updatedTask = versionClone.TaskCopies[taskId];
 
         if (request.Name is not null)
             updatedTask.Name = request.Name.Trim();
@@ -122,11 +122,10 @@ public sealed class TasksEditController(CompetitionDbContext db) : ControllerBas
         if (currentVersion is null || currentVersion.Tasks.All(item => item.Id != taskId))
             return NotFound();
 
-        var newVersion = CloneVersion(
+        var newVersion = CompetitionVersionCloner.Clone(
             currentVersion,
             competition.Version + 1,
-            excludedTaskId: taskId,
-            out _);
+            excludedTaskId: taskId).Version;
 
         competition.Version = newVersion.VersionNumber;
         db.CompetitionVersions.Add(newVersion);
@@ -165,58 +164,6 @@ public sealed class TasksEditController(CompetitionDbContext db) : ControllerBas
             .ThenInclude(task => task.Tests)
             .SingleOrDefaultAsync(version => version.Id == versionId, cancellationToken);
 
-    private static CompetitionVersion CloneVersion(
-        CompetitionVersion source,
-        int versionNumber,
-        Guid? excludedTaskId,
-        out Dictionary<Guid, CompetitionTask> taskCopies)
-    {
-        var copy = new CompetitionVersion
-        {
-            CompetitionId = source.CompetitionId,
-            VersionNumber = versionNumber,
-            Name = source.Name,
-            Description = source.Description,
-            StartTime = source.StartTime,
-            EndTime = source.EndTime,
-            AllowViewOthersCode = source.AllowViewOthersCode
-        };
-        taskCopies = [];
-
-        foreach (var oldTask in source.Tasks.OrderBy(task => task.OrderNo))
-        {
-            if (oldTask.Id == excludedTaskId)
-                continue;
-
-            var newTask = new CompetitionTask
-            {
-                CompetitionVersion = copy,
-                OrderNo = oldTask.OrderNo,
-                Name = oldTask.Name,
-                Description = oldTask.Description,
-                TimeLimitMs = oldTask.TimeLimitMs,
-                MemoryLimitMb = oldTask.MemoryLimitMb,
-                IsArchived = oldTask.IsArchived
-            };
-
-            foreach (var oldTest in oldTask.Tests.OrderBy(test => test.OrderNo))
-            {
-                newTask.Tests.Add(new CompetitionTest
-                {
-                    Task = newTask,
-                    OrderNo = oldTest.OrderNo,
-                    IsPublic = oldTest.IsPublic,
-                    Input = oldTest.Input,
-                    Expected = oldTest.Expected
-                });
-            }
-
-            copy.Tasks.Add(newTask);
-            taskCopies.Add(oldTask.Id, newTask);
-        }
-
-        return copy;
-    }
 
     private static TaskEditResponse ToResponse(
         CompetitionTask task,
