@@ -91,18 +91,18 @@ public sealed class CompetitionEditController(CompetitionDbContext db) : Control
         return Ok(ToResponse(competition, newVersion));
     }
 
-    [HttpPatch("{id}/archive")]
-    public async Task<ActionResult<CompetitionArchiveResponse>> SetArchived(
+    [HttpPatch("{id}/status")]
+    public async Task<ActionResult<CompetitionStatusResponse>> SetStatus(
         [FromRoute] string id,
-        [FromBody] SetCompetitionArchivedRequest request,
+        [FromBody] SetCompetitionStatusRequest request,
         [FromHeader(Name = InternalRequestHeaders.UserId)] string? userId,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return Unauthorized();
 
-        if (request.Archived is null)
-            return BadRequest("Archived must be provided.");
+        if (request.Status is null || !Enum.IsDefined(request.Status.Value))
+            return BadRequest("A valid status must be provided.");
 
         var competition = await db.Competitions.SingleOrDefaultAsync(
             item => item.Id == id && item.CreatorId == userId,
@@ -110,21 +110,22 @@ public sealed class CompetitionEditController(CompetitionDbContext db) : Control
         if (competition is null)
             return NotFound();
 
-        if (request.Archived.Value)
-        {
-            if (competition.Status == CompetitionStatus.Draft)
-                return BadRequest("A draft competition cannot be archived.");
+        var newStatus = request.Status.Value;
+        var isValidTransition = competition.Status == newStatus ||
+            (competition.Status, newStatus) switch
+            {
+                (CompetitionStatus.Draft, CompetitionStatus.Published) => true,
+                (CompetitionStatus.Published, CompetitionStatus.Archived) => true,
+                (CompetitionStatus.Archived, CompetitionStatus.Published) => true,
+                _ => false
+            };
+        if (!isValidTransition)
+            return BadRequest($"Cannot change status from {competition.Status} to {newStatus}.");
 
-            competition.Status = CompetitionStatus.Archived;
-        }
-        else if (competition.Status == CompetitionStatus.Archived)
-        {
-            competition.Status = CompetitionStatus.Published;
-        }
-
+        competition.Status = newStatus;
         await db.SaveChangesAsync(cancellationToken);
 
-        return Ok(new CompetitionArchiveResponse(
+        return Ok(new CompetitionStatusResponse(
             competition.Id,
             competition.Status,
             competition.Version));
@@ -152,8 +153,8 @@ public sealed class CompetitionEditController(CompetitionDbContext db) : Control
         DateTimeOffset? EndTime = null,
         bool? AllowViewOthersCode = null);
 
-    public sealed record SetCompetitionArchivedRequest(
-        [Required] bool? Archived);
+    public sealed record SetCompetitionStatusRequest(
+        [Required] CompetitionStatus? Status);
 
     public sealed record CompetitionEditResponse(
         string Id,
@@ -167,7 +168,7 @@ public sealed class CompetitionEditController(CompetitionDbContext db) : Control
         bool AllowViewOthersCode,
         DateTimeOffset VersionCreatedAt);
 
-    public sealed record CompetitionArchiveResponse(
+    public sealed record CompetitionStatusResponse(
         string Id,
         CompetitionStatus Status,
         int Version);

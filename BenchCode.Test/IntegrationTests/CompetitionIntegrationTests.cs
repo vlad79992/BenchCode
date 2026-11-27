@@ -91,10 +91,21 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
         Assert.Equal("Initial competition", version.Name);
         Assert.Equal(ContestPermission.Owner, owner.Permission);
         Assert.Equal("new-owner", owner.UserId);
+
+        using var publishResponse = await client.PatchAsJsonAsync(
+            $"/internal/competitions/{id}/status",
+            new { status = (int)CompetitionStatus.Published });
+        Assert.Equal(HttpStatusCode.OK, publishResponse.StatusCode);
+        using var publishedBody = JsonDocument.Parse(await publishResponse.Content.ReadAsStringAsync());
+        Assert.Equal(1, publishedBody.RootElement.GetProperty("version").GetInt32());
+
+        var publishedCompetition = await db.Competitions.AsNoTracking()
+            .SingleAsync(item => item.Id == id);
+        Assert.Equal(CompetitionStatus.Published, publishedCompetition.Status);
     }
 
     [Fact]
-    public async Task EditCompetition_CopiesVersionAndArchiveDoesNotIncrementIt()
+    public async Task EditCompetition_CopiesVersionAndStatusChangesDoNotIncrementIt()
     {
         var id = CompetitionEntity.GenerateId();
         await using var scope = fixture.CompetitionFactory.Services.CreateAsyncScope();
@@ -144,11 +155,19 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
         Assert.Equal(2, editBody.RootElement.GetProperty("version").GetInt32());
 
         using var archiveResponse = await client.PatchAsJsonAsync(
-            $"/internal/competitions/{id}/archive",
-            new { archived = true });
+            $"/internal/competitions/{id}/status",
+            new { status = (int)CompetitionStatus.Archived });
         Assert.Equal(HttpStatusCode.OK, archiveResponse.StatusCode);
         using var archiveBody = JsonDocument.Parse(await archiveResponse.Content.ReadAsStringAsync());
         Assert.Equal(2, archiveBody.RootElement.GetProperty("version").GetInt32());
+        Assert.Equal((int)CompetitionStatus.Archived, archiveBody.RootElement.GetProperty("status").GetInt32());
+
+        using var restoreResponse = await client.PatchAsJsonAsync(
+            $"/internal/competitions/{id}/status",
+            new { status = (int)CompetitionStatus.Published });
+        Assert.Equal(HttpStatusCode.OK, restoreResponse.StatusCode);
+        using var restoreBody = JsonDocument.Parse(await restoreResponse.Content.ReadAsStringAsync());
+        Assert.Equal(2, restoreBody.RootElement.GetProperty("version").GetInt32());
 
         await using var verificationScope = fixture.CompetitionFactory.Services.CreateAsyncScope();
         var verificationDb = verificationScope.ServiceProvider.GetRequiredService<CompetitionDbContext>();
@@ -162,7 +181,7 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
             .OrderBy(item => item.VersionNumber)
             .ToListAsync();
 
-        Assert.Equal(CompetitionStatus.Archived, competition.Status);
+        Assert.Equal(CompetitionStatus.Published, competition.Status);
         Assert.Equal(2, competition.Version);
         Assert.Equal("Original", versions[0].Name);
         Assert.Equal("Updated", versions[1].Name);
