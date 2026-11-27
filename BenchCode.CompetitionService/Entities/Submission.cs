@@ -1,32 +1,44 @@
-using BenchCode.Shared.Entities;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+using SharedSubmissionResult = BenchCode.Shared.Entities.SubmissionResult;
 
 namespace BenchCode.CompetitionService.Entities;
 
 public class Submission
 {
     [Key]
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+
     [Required]
     public string CompetitionId { get; set; } = string.Empty;
-    public int TaskId { get; set; }
+    [ForeignKey(nameof(CompetitionId))]
+    [DeleteBehavior(DeleteBehavior.Restrict)]
+    public Competition? Competition { get; set; }
+
+    public Guid TaskId { get; set; }
+    [ForeignKey(nameof(TaskId))]
+    public Task? Task { get; set; }
+
     [Required]
     public string UserId { get; set; } = string.Empty;
-    public CompetitionLanguage Language { get; set; }
+
+    public Language Language { get; set; }
+
     [Required, MaxLength(65536)]
     public string Code { get; set; } = string.Empty;
-    public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
-    public int CompetitionVersion { get; set; } = 1;
-    public bool IsLate { get; set; }
-    public SubmissionStatus Status { get; set; } = SubmissionStatus.Testing;
-    public Verdict? Verdict { get; set; }
-    public int? TimeMs { get; set; }
-    public int? MemoryKb { get; set; }
-    public string? ErrorMessage { get; set; }
-    public string? CompilerOutput { get; set; }
 
-    public CompetitionTask? Task { get; set; }
-    public ICollection<TestResult> TestResults { get; set; } = new List<TestResult>();
+    public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public int CompetitionVersion { get; set; } = 1;
+
+    public SubmissionStatus Status { get; set; } = SubmissionStatus.Testing;
+
+    public string? BuildError { get; set; }
+
+    public Shared.Entities.Verdict? Verdict { get; set; }
+
+    public ICollection<Run> Runs { get; set; } = [];
 }
 
 public enum SubmissionStatus
@@ -36,11 +48,10 @@ public enum SubmissionStatus
     SystemError
 }
 
-public enum CompetitionLanguage
+public enum Language
 {
     Cpp,
     CSharp,
     Java,
-    C,
     Python
 }

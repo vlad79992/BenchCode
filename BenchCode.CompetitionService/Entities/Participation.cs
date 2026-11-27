@@ -1,20 +1,24 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace BenchCode.CompetitionService.Entities;
 
+[Index(nameof(CompetitionId), nameof(UserId), IsUnique = true)]
 public class Participation
 {
     [Key]
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+
     [Required]
     public string CompetitionId { get; set; } = string.Empty;
-    [Required]
-    public string UserId { get; set; } = string.Empty;
-    public ContestPermission Permission { get; set; } = ContestPermission.Participant;
-    public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
     [ForeignKey(nameof(CompetitionId))]
     public Competition? Competition { get; set; }
+
+    [Required]
+    public string UserId { get; set; } = string.Empty;
+
+    public ContestPermission Permission { get; set; } = ContestPermission.Participant;
 }
 
 public enum ContestPermission

@@ -64,7 +64,7 @@ public sealed class ProgramRunnerIntegrationTests
         var result = await runner.RunAsync(
             profile,
             build.Artifact,
-            new TestCase("world\n", "Hello world\n"));
+            new Shared.Entities.TestCase("world\n", "Hello world\n"));
 
         Assert.Equal(Verdict.OK, result.Verdict);
         Assert.Equal(0, result.ExitCode);

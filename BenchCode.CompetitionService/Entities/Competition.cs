@@ -19,14 +19,18 @@ public class Competition
 
     [Required, MaxLength(200)]
     public string Name { get; set; } = string.Empty;
+
     /// <summary>
     /// Описание соревнования в формате Markdown
     /// </summary>
     public string? Description { get; set; }
+
     [Required]
-    public Guid CreatorId { get; set; }
+    public string CreatorId { get; set; } = string.Empty;
+
     public DateTimeOffset? StartTime { get; set; }
     public DateTimeOffset? EndTime { get; set; }
+
     /// <summary>
     /// Статус соревнования.
     /// Может быть:
@@ -43,16 +47,18 @@ public class Competition
     /// </list>
     /// </summary>
     public CompetitionStatus Status { get; set; } = CompetitionStatus.Draft;
+
     /// <summary>
     /// Версия соревнования. <br/>
     /// При каждом изменении версия соревнования увеличивается,
     /// чтобы при изменении соревнования старые отправки не учитывались в новых версиях.
     /// </summary>
     public int Version { get; set; } = 1;
+
     public bool AllowViewOthersCode { get; set; }
 
     public ICollection<Participation> Participations { get; set; } = [];
-    public ICollection<CompetitionTask> Tasks { get; set; } = [];
+    public ICollection<Task> Tasks { get; set; } = [];
 
     /// <summary>
     /// Функция для генерации псевдослучайного кода соревнования
