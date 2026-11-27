@@ -1,11 +1,14 @@
 using BenchCode.CompetitionService;
 using CompetitionEntity = BenchCode.CompetitionService.Entities.Competition;
 using CompetitionStatus = BenchCode.CompetitionService.Entities.CompetitionStatus;
+using ContestPermission = BenchCode.CompetitionService.Entities.ContestPermission;
 using CompetitionTask = BenchCode.CompetitionService.Entities.Task;
 using CompetitionTest = BenchCode.CompetitionService.Entities.Test;
+using Participation = BenchCode.CompetitionService.Entities.Participation;
 using CompetitionVersion = BenchCode.CompetitionService.Entities.CompetitionVersion;
 using BenchCode.Shared;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
@@ -23,7 +26,7 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
     {
         using var client = CreateClient();
 
-        using var response = await client.PostAsJsonAsync("/api/competitions", CreateRequest());
+        using var response = await client.PostAsJsonAsync("/internal/competitions", CreateRequest());
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -33,7 +36,7 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
     {
         using var client = CreateClient("test-owner");
 
-        using var response = await client.PostAsJsonAsync("/api/competitions", CreateRequest());
+        using var response = await client.PostAsJsonAsync("/internal/competitions", CreateRequest());
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -47,14 +50,125 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
     public async Task GetMyCompetitions_ReturnsOnlyOwnedOrJoinedCompetitions()
     {
         using var ownerClient = CreateClient("owner");
-        using var created = await ownerClient.PostAsJsonAsync("/api/competitions", CreateRequest());
+        using var created = await ownerClient.PostAsJsonAsync("/internal/competitions", CreateRequest());
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
 
-        using var response = await ownerClient.GetAsync("/api/me/competitions?scope=owned");
+        using var response = await ownerClient.GetAsync("/internal/me/competitions?scope=owned");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.NotEmpty(body.RootElement.EnumerateArray());
+    }
+
+    [Fact]
+    public async Task CreateCompetition_CreatesInitialVersionAndOwnerParticipation()
+    {
+        using var client = CreateClient();
+        client.DefaultRequestHeaders.Add(InternalRequestHeaders.UserId, "new-owner");
+
+        using var response = await client.PostAsJsonAsync("/internal/competitions", new
+        {
+            name = "Initial competition",
+            description = "Created in the first version.",
+            allowViewOthersCode = true
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var id = body.RootElement.GetProperty("id").GetString();
+        Assert.NotNull(id);
+        Assert.Equal(1, body.RootElement.GetProperty("version").GetInt32());
+
+        await using var scope = fixture.CompetitionFactory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CompetitionDbContext>();
+        var competition = await db.Competitions.SingleAsync(item => item.Id == id);
+        var version = await db.CompetitionVersions.SingleAsync(item => item.CompetitionId == id);
+        var owner = await db.Participations.SingleAsync(item => item.CompetitionId == id);
+
+        Assert.Equal("new-owner", competition.CreatorId);
+        Assert.Equal(CompetitionStatus.Draft, competition.Status);
+        Assert.Equal(1, version.VersionNumber);
+        Assert.Equal("Initial competition", version.Name);
+        Assert.Equal(ContestPermission.Owner, owner.Permission);
+        Assert.Equal("new-owner", owner.UserId);
+    }
+
+    [Fact]
+    public async Task EditCompetition_CopiesVersionAndArchiveDoesNotIncrementIt()
+    {
+        var id = CompetitionEntity.GenerateId();
+        await using var scope = fixture.CompetitionFactory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CompetitionDbContext>();
+        db.Competitions.Add(new CompetitionEntity
+        {
+            Id = id,
+            CreatorId = "editor",
+            Status = CompetitionStatus.Published,
+            Version = 1
+        });
+        var version = new CompetitionVersion
+        {
+            CompetitionId = id,
+            VersionNumber = 1,
+            Name = "Original"
+        };
+        db.CompetitionVersions.Add(version);
+        var oldTask = new CompetitionTask
+        {
+            CompetitionVersionId = version.Id,
+            OrderNo = 1,
+            Name = "Original task"
+        };
+        var oldTest = new CompetitionTest
+        {
+            TaskId = oldTask.Id,
+            OrderNo = 1,
+            IsPublic = false,
+            Input = "input",
+            Expected = "expected"
+        };
+        db.Tasks.Add(oldTask);
+        db.Tests.Add(oldTest);
+        await db.SaveChangesAsync();
+
+        using var client = CreateClient();
+        client.DefaultRequestHeaders.Add(InternalRequestHeaders.UserId, "editor");
+        using var editResponse = await client.PatchAsJsonAsync($"/internal/competitions/{id}", new
+        {
+            name = "Updated",
+            allowViewOthersCode = true
+        });
+
+        Assert.Equal(HttpStatusCode.OK, editResponse.StatusCode);
+        using var editBody = JsonDocument.Parse(await editResponse.Content.ReadAsStringAsync());
+        Assert.Equal(2, editBody.RootElement.GetProperty("version").GetInt32());
+
+        using var archiveResponse = await client.PatchAsJsonAsync(
+            $"/internal/competitions/{id}/archive",
+            new { archived = true });
+        Assert.Equal(HttpStatusCode.OK, archiveResponse.StatusCode);
+        using var archiveBody = JsonDocument.Parse(await archiveResponse.Content.ReadAsStringAsync());
+        Assert.Equal(2, archiveBody.RootElement.GetProperty("version").GetInt32());
+
+        await using var verificationScope = fixture.CompetitionFactory.Services.CreateAsyncScope();
+        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<CompetitionDbContext>();
+        var competition = await verificationDb.Competitions.AsNoTracking()
+            .SingleAsync(item => item.Id == id);
+        var versions = await verificationDb.CompetitionVersions.AsNoTracking()
+            .AsSplitQuery()
+            .Include(item => item.Tasks)
+            .ThenInclude(task => task.Tests)
+            .Where(item => item.CompetitionId == id)
+            .OrderBy(item => item.VersionNumber)
+            .ToListAsync();
+
+        Assert.Equal(CompetitionStatus.Archived, competition.Status);
+        Assert.Equal(2, competition.Version);
+        Assert.Equal("Original", versions[0].Name);
+        Assert.Equal("Updated", versions[1].Name);
+        Assert.NotEqual(oldTask.Id, versions[1].Tasks.Single().Id);
+        Assert.NotEqual(oldTest.Id, versions[1].Tasks.Single().Tests.Single().Id);
+        Assert.Equal(versions[1].Tasks.Single().Id, versions[1].Tasks.Single().Tests.Single().TaskId);
     }
 
     [Fact]
@@ -140,7 +254,7 @@ public sealed class CompetitionIntegrationTests(Fixture fixture)
                 BaseAddress = new Uri("https://localhost")
             });
         if (userId is not null)
-            client.DefaultRequestHeaders.Add("X-Test-User-Id", userId);
+            client.DefaultRequestHeaders.Add(InternalRequestHeaders.UserId, userId);
         return client;
     }
 
