@@ -1,8 +1,21 @@
 using BenchCode.CompetitionService;
+using BenchCode.CompetitionService.Services;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.ServiceDiscovery;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddNpgsqlDbContext<CompetitionDbContext>(connectionName: "competitionsdb");
+builder.AddRabbitMQClient(connectionName: "rabbitmq");
+builder.Services.Configure<SubmissionQueueOptions>(
+    builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.AddHttpClient<ISubmissionRunner, RunnerClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Runner:Address"]!);
+}).AddServiceDiscovery();
+builder.Services.AddSingleton<ISubmissionQueue, SubmissionQueueClient>();
+builder.Services.AddHostedService<FastCheckQueueWorker>();
+builder.Services.AddHostedService<FullSubmissionQueueWorker>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 

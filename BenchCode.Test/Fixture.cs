@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using BenchCode.Test.IntegrationTests;
 using Testcontainers.PostgreSql;
+using Testcontainers.RabbitMq;
+using CompetitionSubmissionRunner = CompetitionService::BenchCode.CompetitionService.Services.ISubmissionRunner;
 
 namespace BenchCode.Test;
 
@@ -17,6 +20,7 @@ public sealed class Fixture : IAsyncLifetime
         new PostgreSqlBuilder(PostgresImage).Build();
     private readonly PostgreSqlContainer competitionDbContainer =
         new PostgreSqlBuilder(PostgresImage).Build();
+    private readonly RabbitMqContainer rabbitMqContainer = new RabbitMqBuilder("rabbitmq:4.1-management").Build();
 
 
     public WebApplicationFactory<AuthService::Program> AuthServiceFactory { get; private set; } = null!;
@@ -27,6 +31,7 @@ public sealed class Fixture : IAsyncLifetime
 
         await authDbContainer.StartAsync();
         await competitionDbContainer.StartAsync();
+        await rabbitMqContainer.StartAsync();
 
 
         AuthServiceFactory = new WebApplicationFactory<AuthService::Program>()
@@ -45,8 +50,10 @@ public sealed class Fixture : IAsyncLifetime
                     "ConnectionStrings:competitionsdb",
                     competitionDbContainer.GetConnectionString());
                 builder.UseSetting("OpenIddict:Issuer", "https://localhost:5001/");
+                builder.UseSetting("ConnectionStrings:rabbitmq", rabbitMqContainer.GetConnectionString());
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddSingleton<CompetitionSubmissionRunner, FixtureSubmissionRunner>();
                     services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = TestAuthenticationHandler.Scheme;
@@ -62,6 +69,7 @@ public sealed class Fixture : IAsyncLifetime
     {
         await using var db = authDbContainer;
         await using var competitionDb = competitionDbContainer;
+        await using var rabbitMq = rabbitMqContainer;
         await using var userFactory = AuthServiceFactory;
         await using var competitionFactory = CompetitionFactory;
     }

@@ -51,16 +51,17 @@ var authIssuer = authService.GetEndpoint("https");
 authService.WithEnvironment("OpenIddict__Issuer", authIssuer);
 
 var competitionsDb = postgres.AddDatabase("competitionsdb");
-var solutionsDb = postgres.AddDatabase("solutionsdb");
+
+var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")
+    .WaitFor(competitionsDb);
 
 var competitionService = builder.AddDotnetProject("competition", "../BenchCode.CompetitionService/BenchCode.CompetitionService.csproj")
     .WaitFor(competitionsDb)
-    .WithReference(competitionsDb);
-
-var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")
-    .WaitFor(competitionsDb)
-    .WaitFor(solutionsDb)
-    .WithReference(solutionsDb);
+    .WithReference(competitionsDb)
+    .WaitFor(rabbitmq)
+    .WithReference(rabbitmq)
+    .WaitFor(programRunnerService)
+    .WithReference(programRunnerService);
 
 var gateway = builder.AddDotnetProject("gateway", "../BenchCode.Gateway/BenchCode.Gateway.csproj")
     .WithReference(authService)
