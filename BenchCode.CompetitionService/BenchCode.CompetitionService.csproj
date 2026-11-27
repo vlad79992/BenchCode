@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Controllers\CompetitionsController.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.6.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
     <PackageReference Include="OpenIddict.AspNetCore" Version="7.8.0" />
