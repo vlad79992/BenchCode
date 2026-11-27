@@ -4,16 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenchCode.CompetitionService.Entities;
 
-[Index(nameof(CompetitionId), nameof(OrderNo), IsUnique = true)]
+[Index(nameof(CompetitionVersionId), nameof(OrderNo), IsUnique = true)]
 public class Task
 {
     [Key]
     public Guid Id { get; set; } = Guid.CreateVersion7();
 
-    [Required]
-    public string CompetitionId { get; set; } = string.Empty;
-    [ForeignKey(nameof(CompetitionId))]
-    public Competition? Competition { get; set; }
+    public Guid CompetitionVersionId { get; set; }
+    [ForeignKey(nameof(CompetitionVersionId))]
+    public CompetitionVersion? CompetitionVersion { get; set; }
 
     /// <summary>
     /// Номер задачи для отображения в определенном порядке
@@ -32,6 +31,7 @@ public class Task
     public int MemoryLimitMb { get; set; } = 256;
 
     public bool IsArchived { get; set; }
+
 
     public ICollection<Test> Tests { get; set; } = [];
 

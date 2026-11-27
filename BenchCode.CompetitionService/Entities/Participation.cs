@@ -19,6 +19,11 @@ public class Participation
     public string UserId { get; set; } = string.Empty;
 
     public ContestPermission Permission { get; set; } = ContestPermission.Participant;
+
+    /// <summary>
+    /// Скрывает участника из чужих решений и рейтинга; владелец соревнования видит его.
+    /// </summary>
+    public bool IsHidden { get; set; }
 }
 
 public enum ContestPermission
