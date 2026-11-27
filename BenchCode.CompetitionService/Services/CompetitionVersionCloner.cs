@@ -9,7 +9,8 @@ public static class CompetitionVersionCloner
     public static CompetitionVersionClone Clone(
         CompetitionVersion source,
         int versionNumber,
-        Guid? excludedTaskId = null)
+        Guid? excludedTaskId = null,
+        Guid? excludedTestId = null)
     {
         var version = new CompetitionVersion
         {
@@ -22,6 +23,7 @@ public static class CompetitionVersionCloner
             AllowViewOthersCode = source.AllowViewOthersCode
         };
         var taskCopies = new Dictionary<Guid, CompetitionTask>();
+        var testCopies = new Dictionary<Guid, CompetitionTest>();
 
         foreach (var oldTask in source.Tasks.OrderBy(task => task.OrderNo))
         {
@@ -41,24 +43,30 @@ public static class CompetitionVersionCloner
 
             foreach (var oldTest in oldTask.Tests.OrderBy(test => test.OrderNo))
             {
-                newTask.Tests.Add(new CompetitionTest
+                if (excludedTestId == oldTest.Id)
+                    continue;
+
+                var newTest = new CompetitionTest
                 {
                     Task = newTask,
                     OrderNo = oldTest.OrderNo,
                     IsPublic = oldTest.IsPublic,
                     Input = oldTest.Input,
                     Expected = oldTest.Expected
-                });
+                };
+                newTask.Tests.Add(newTest);
+                testCopies.Add(oldTest.Id, newTest);
             }
 
             version.Tasks.Add(newTask);
             taskCopies.Add(oldTask.Id, newTask);
         }
 
-        return new CompetitionVersionClone(version, taskCopies);
+        return new CompetitionVersionClone(version, taskCopies, testCopies);
     }
 }
 
 public sealed record CompetitionVersionClone(
     CompetitionVersion Version,
-    IReadOnlyDictionary<Guid, CompetitionTask> TaskCopies);
+    IReadOnlyDictionary<Guid, CompetitionTask> TaskCopies,
+    IReadOnlyDictionary<Guid, CompetitionTest> TestCopies);
