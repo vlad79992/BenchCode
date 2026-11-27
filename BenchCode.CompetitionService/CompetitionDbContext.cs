@@ -7,6 +7,7 @@ namespace BenchCode.CompetitionService;
 public class CompetitionDbContext(DbContextOptions<CompetitionDbContext> options) : DbContext(options)
 {
     public DbSet<Competition> Competitions => Set<Competition>();
+    public DbSet<CompetitionVersion> CompetitionVersions => Set<CompetitionVersion>();
     public DbSet<Participation> Participations => Set<Participation>();
     public DbSet<CompetitionTask> Tasks => Set<CompetitionTask>();
     public DbSet<Test> Tests => Set<Test>();

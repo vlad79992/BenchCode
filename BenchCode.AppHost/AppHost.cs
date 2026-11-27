@@ -55,9 +55,7 @@ var solutionsDb = postgres.AddDatabase("solutionsdb");
 
 var competitionService = builder.AddDotnetProject("competition", "../BenchCode.CompetitionService/BenchCode.CompetitionService.csproj")
     .WaitFor(competitionsDb)
-    .WithReference(competitionsDb)
-    .WithEnvironment("OpenIddict__Issuer", "https://localhost:7231/");
-competitionService.WithEnvironment("OpenIddict__Issuer", authIssuer);
+    .WithReference(competitionsDb);
 
 var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCode.ProgramRunnerService/BenchCode.ProgramRunnerService.csproj")
     .WaitFor(competitionsDb)
@@ -66,6 +64,8 @@ var programRunnerService = builder.AddDotnetProject("programRunner", "../BenchCo
 
 var gateway = builder.AddDotnetProject("gateway", "../BenchCode.Gateway/BenchCode.Gateway.csproj")
     .WithReference(authService)
+    .WithReference(competitionService)
+    .WithEnvironment("OpenIddict__Issuer", authIssuer)
     .WaitForCompletion(composeWasmBuild);
 
 if (builder.Environment.IsDevelopment())

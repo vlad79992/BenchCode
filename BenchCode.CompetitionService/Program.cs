@@ -1,29 +1,10 @@
 using BenchCode.CompetitionService;
-using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddNpgsqlDbContext<CompetitionDbContext>(connectionName: "competitionsdb");
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddAuthorization();
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-});
-
-builder.Services.AddOpenIddict()
-    .AddValidation(options =>
-    {
-        options.UseLocalServer();
-        var issuer = builder.Configuration["OpenIddict:Issuer"];
-        if (!string.IsNullOrWhiteSpace(issuer))
-            options.SetIssuer(issuer);
-        options.AddAudiences("benchcode-api");
-        options.UseAspNetCore();
-    });
 
 var app = builder.Build();
 
@@ -39,8 +20,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

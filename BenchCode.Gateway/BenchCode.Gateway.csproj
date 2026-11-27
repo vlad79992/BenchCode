@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BenchCode.ServiceDefaults\BenchCode.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\BenchCode.Shared\BenchCode.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

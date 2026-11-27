@@ -1,6 +1,0 @@
-@BenchCode.ProgramRunnerService_HostAddress = http://localhost:5025
-
-GET {{BenchCode.ProgramRunnerService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
