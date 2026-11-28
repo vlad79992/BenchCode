@@ -103,12 +103,26 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRateLimiter();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/auth") && context.Request.HasFormContentType)
+        context.Request.EnableBuffering();
+
+    await next();
+});
 // проверка токена
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.StartsWithSegments("/auth") &&
+        context.Request.HasFormContentType &&
+        context.Request.Body.CanSeek)
+    {
+        context.Request.Body.Position = 0;
+    }
+
     if (context.Request.Path.StartsWithSegments("/api"))
     {
         // отбрасывается bearer токен

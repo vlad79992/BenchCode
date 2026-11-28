@@ -11,6 +11,7 @@ builder.Services.Configure<SubmissionQueueOptions>(
     builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.Configure<SubmissionOutboxOptions>(
     builder.Configuration.GetSection("SubmissionOutbox"));
+builder.Services.AddServiceDiscovery();
 builder.Services.AddHttpClient<ISubmissionRunner, RunnerClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Runner:Address"]!);

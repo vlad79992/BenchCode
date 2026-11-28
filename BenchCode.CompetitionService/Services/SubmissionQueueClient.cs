@@ -148,7 +148,7 @@ internal static class SubmissionQueueTopology
         };
         await channel.QueueDeclareAsync(
             queue: options.FastQueueName,
-            durable: false,
+            durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: deadLetterArguments,
