@@ -12,5 +12,6 @@ public class CompetitionDbContext(DbContextOptions<CompetitionDbContext> options
     public DbSet<CompetitionTask> Tasks => Set<CompetitionTask>();
     public DbSet<Test> Tests => Set<Test>();
     public DbSet<Submission> Submissions => Set<Submission>();
+    public DbSet<SubmissionOutboxMessage> SubmissionOutboxMessages => Set<SubmissionOutboxMessage>();
     public DbSet<Run> Runs => Set<Run>();
 }

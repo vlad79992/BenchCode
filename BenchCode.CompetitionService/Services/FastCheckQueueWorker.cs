@@ -90,7 +90,9 @@ public sealed class FastCheckQueueWorker(
                 BuildError: null,
                 FinalVerdict: null,
                 Runs: [],
-                Error: "The program runner is unavailable.");
+                Error: RunnerRetryPolicy.IsPermanentClientError(exception)
+                    ? "ProgramRunner rejected the generated check request."
+                    : "The program runner is unavailable.");
         }
 
         var properties = new BasicProperties
@@ -125,7 +127,7 @@ public sealed class FastCheckQueueWorker(
             }
             catch (Exception exception) when (
                 attempt < settings.RunnerAttempts &&
-                (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested))
+                RunnerRetryPolicy.ShouldRetry(exception, cancellationToken))
             {
                 logger.LogWarning(exception, "Fast check attempt {Attempt} failed; retrying.", attempt);
                 await Task.Delay(

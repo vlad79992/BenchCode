@@ -191,7 +191,7 @@ public sealed class FullSubmissionQueueWorker(
             }
             catch (Exception exception) when (
                 attempt < settings.RunnerAttempts &&
-                (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested))
+                RunnerRetryPolicy.ShouldRetry(exception, cancellationToken))
             {
                 logger.LogWarning(exception,
                     "Runner attempt {Attempt} failed for submission {SubmissionId}; retrying.",

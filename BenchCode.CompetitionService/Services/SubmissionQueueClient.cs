@@ -88,8 +88,12 @@ public sealed class SubmissionQueueClient(
         Guid submissionId,
         CancellationToken cancellationToken)
     {
+        var channelOptions = new CreateChannelOptions(
+            publisherConfirmationsEnabled: true,
+            publisherConfirmationTrackingEnabled: true);
         await using var channel = await connection.CreateChannelAsync(
-            cancellationToken: cancellationToken);
+            channelOptions,
+            cancellationToken);
         await SubmissionQueueTopology.DeclareAsync(channel, options.Value, cancellationToken);
         var properties = new BasicProperties
         {

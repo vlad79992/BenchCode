@@ -9,6 +9,8 @@ builder.AddNpgsqlDbContext<CompetitionDbContext>(connectionName: "competitionsdb
 builder.AddRabbitMQClient(connectionName: "rabbitmq");
 builder.Services.Configure<SubmissionQueueOptions>(
     builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.Configure<SubmissionOutboxOptions>(
+    builder.Configuration.GetSection("SubmissionOutbox"));
 builder.Services.AddHttpClient<ISubmissionRunner, RunnerClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Runner:Address"]!);
@@ -16,6 +18,7 @@ builder.Services.AddHttpClient<ISubmissionRunner, RunnerClient>(client =>
 builder.Services.AddSingleton<ISubmissionQueue, SubmissionQueueClient>();
 builder.Services.AddHostedService<FastCheckQueueWorker>();
 builder.Services.AddHostedService<FullSubmissionQueueWorker>();
+builder.Services.AddHostedService<SubmissionOutboxPublisher>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
